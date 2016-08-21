@@ -26,6 +26,7 @@ public class Ventana extends javax.swing.JFrame {
     /**
      * Creates new form Ventana
      */
+    File f;
     public Ventana() {
         initComponents();
     }
@@ -69,6 +70,11 @@ public class Ventana extends javax.swing.JFrame {
         jScrollPane2.setViewportView(jTextArea1);
 
         jButton3.setText("Analizar");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -130,16 +136,25 @@ public class Ventana extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.showDialog(jPanel1,"Accept");
-        File f = chooser.getSelectedFile();
+        f = chooser.getSelectedFile();
         txtFile.setText(f.toString());
-        
-        
-        
-        
-        
         try{
-                    List<String> content = Files.readAllLines(f.toPath());
-                    jTextArea1.setText(content.toString());
+        List<String> content = Files.readAllLines(f.toPath());
+        jTextArea1.setText(content.toString());
+        }catch( Exception e)
+        {
+            
+        }
+        
+        
+        
+        
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        try{
+                
+                    
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     PrintStream ps = new PrintStream(baos);
                     // IMPORTANT: Save the old System.out!
@@ -158,7 +173,7 @@ public class Ventana extends javax.swing.JFrame {
 		}catch (Exception e){
 			System.out.println(e);
 		}
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButton3ActionPerformed
     
     
     /**
