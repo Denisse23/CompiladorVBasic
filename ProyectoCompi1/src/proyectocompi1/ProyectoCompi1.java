@@ -19,8 +19,10 @@ public class ProyectoCompi1 {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-       // String path = ("C:/Users/kingdomkaz/Documents/Analisis de Algoritmos/ProyectoCompi1/build/classes/proyectocompi1/Vbasic.flex");       
-        //generarLexer(path);
+        String path = ("./Vbasic.flex"); 
+        try{
+            generarLexer(path);
+        }catch(Exception e){}
         Ventana vent = new Ventana();
         vent.setVisible(true);
         
