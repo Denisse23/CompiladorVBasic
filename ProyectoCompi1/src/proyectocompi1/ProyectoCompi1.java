@@ -19,7 +19,7 @@ public class ProyectoCompi1 {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        String path = ("./Vbasic.flex"); 
+        String path = ("./src/proyectocompi1/Vbasic.flex"); 
         try{
             generarLexer(path);
         }catch(Exception e){}

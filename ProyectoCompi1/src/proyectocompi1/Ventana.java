@@ -5,9 +5,11 @@
  */
 package proyectocompi1;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -139,8 +141,12 @@ public class Ventana extends javax.swing.JFrame {
         f = chooser.getSelectedFile();
         txtFile.setText(f.toString());
         try{
-        List<String> content = Files.readAllLines(f.toPath());
-        jTextArea1.setText(content.toString());
+            List<String> content = Files.readAllLines(f.toPath());
+            String texto = "";
+            for(int i=0;i<content.size();i++){
+                texto+= content.get(i)+"\n";
+            }
+            jTextArea1.setText(texto);
         }catch( Exception e)
         {
             
@@ -152,27 +158,29 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        
         try{
                 
-                    
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    PrintStream ps = new PrintStream(baos);
-                    // IMPORTANT: Save the old System.out!
-                    PrintStream old = System.out;
-                    // Tell Java to use your special stream
-                    System.setOut(ps);
-                    // Print some output: goes to your special stream
-		
-			Lexer scanner = new Lexer( new FileReader(f.toString()));
-                        scanner.yylex();
-                txtaCodigo.setText(baos.toString());
-                System.out.flush();
-                System.setOut(old);
-                System.out.flush();
-                
-		}catch (Exception e){
-			System.out.println(e);
-		}
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintStream ps = new PrintStream(baos);
+            // IMPORTANT: Save the old System.out!
+            PrintStream old = System.out;
+            // Tell Java to use your special stream
+            System.setOut(ps);
+            // Print some output: goes to your special stream
+            File archivo = new File("./temp.txt");
+            BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
+            bw.write(this.jTextArea1.getText());
+            bw.close();
+            Lexer scanner = new Lexer( new FileReader(archivo));
+            scanner.yylex();
+            txtaCodigo.setText(baos.toString());
+            System.out.flush();
+            System.setOut(old);
+            System.out.flush();
+            }catch (Exception e){
+                System.out.println(e);
+            }
     }//GEN-LAST:event_jButton3ActionPerformed
     
     
