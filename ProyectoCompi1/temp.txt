@@ -1,7 +1,16 @@
-Sub main()
-If a>3 Then
-  s=45
-End If
+Private Sub cmd_compute_Click()
+Dim x, n, num As Integer
+Dim r As Single
+x = Txt_FirstNum.Text
+r = Txt_CR
+num = Txt_Terms.Text
+List1.AddItem "n" & vbTab & "x"
+List1.AddItem "___________"
 
-End SUB
-
+n = 1
+Do
+x = x * r
+List1.AddItem n & vbTab & x
+n = n + 1
+Loop Until n = num + 1
+EnD Sub
