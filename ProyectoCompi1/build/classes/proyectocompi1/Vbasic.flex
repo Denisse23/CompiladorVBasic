@@ -55,7 +55,8 @@ EOF = (E|e)(O|o)(F|f)
 Write = (W|w)(R|r)(I|i)(T|t)(E|e)
 Print = (P|p)(R|r)(I|i)(N|n)(T|t)
 FreeFile = (F|f)(R|r)(E|e)(E|e)(F|f)(I|i)(L|l)(E|e)
-
+CONSOLEWRITE = (C|c)(O|o)(N|n)(S|s)(O|o)(L|l)(E|e).(W|w)(R|r)(I|i)(T|t)(E|e)
+CONSOLEREAD = (C|c)(O|o)(N|n)(S|s)(O|o)(L|l)(E|e).(R|r)(E|e)(A|a)(D|d)
 %{
      
     private String extraerCadenaReal() {
@@ -92,7 +93,7 @@ FreeFile = (F|f)(R|r)(E|e)(E|e)(F|f)(I|i)(L|l)(E|e)
 
     private String revisionPalabraClave(String name){
         String respuesta = "";
-        Pattern pat = Pattern.compile("[A-Z][a-z]+");
+        Pattern pat = Pattern.compile("[A-Z][a-z]+(.[A-Z][a-z])*");
         Matcher mat = pat.matcher(yytext());
         if (mat.matches()) {
             respuesta = "<"+name+", '"+yytext()+"'>";
@@ -146,6 +147,8 @@ FreeFile = (F|f)(R|r)(E|e)(E|e)(F|f)(I|i)(L|l)(E|e)
         {Write}                 {System.out.println(revisionPalabraClave("Write"));}
         {Print}                 {System.out.println(revisionPalabraClave("Print"));}
         {FreeFile}              {System.out.println(revisionPalabraClave("FreeFile"));}
+        {CONSOLEWRITE}          {System.out.println(revisionPalabraClave("CONSOLEWRITE"));}
+        {CONSOLEREAD}           {System.out.println(revisionPalabraClave("CONSOLEREAD"));}
 	{NUMERO}  		{System.out.println("<NUMERO, '"+yytext()+"'>");}
 	{IDENTIFICADOR} 	{System.out.println("<IDENTIFICADOR, '"+yytext()+"'>");}
         {ESPACIO}               {System.out.println("<ESPACIO>, '"+yytext()+"'>");}
