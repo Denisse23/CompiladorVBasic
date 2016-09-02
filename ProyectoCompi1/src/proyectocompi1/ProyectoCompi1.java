@@ -26,8 +26,6 @@ public class ProyectoCompi1 {
         Ventana vent = new Ventana();
         vent.setVisible(true);
         
-        
-        
     }
 
     private static void generarLexer(String path) {
