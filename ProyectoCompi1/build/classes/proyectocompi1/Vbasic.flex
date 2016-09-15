@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 %unicode
 
 SUB = Sub
-MAIN = Main
 ABRIRPARENTESIS = "("
 CERRARPARENTESIS = ")"
 LINE = Line
@@ -92,7 +91,7 @@ COMENTARIO = "'"[^\n]*
 
     private String revisionPalabraClave(String name){
         String respuesta = "";
-        Pattern pat = Pattern.compile("[A-Z][a-z]+(.[A-Z][a-z])*");
+        Pattern pat = Pattern.compile("[A-Z][a-z]+");
         Matcher mat = pat.matcher(yytext());
         if (mat.matches()) {
             respuesta = "<"+name+", '"+yytext()+"'>";
@@ -103,13 +102,32 @@ COMENTARIO = "'"[^\n]*
         return respuesta;
     }
 
+    private String revisionPalabraClave2(String name){
+        String respuesta = "";
+        switch (yytext()) {
+ 
+        case "ByVal":
+        respuesta = "<"+name+", '"+yytext()+"'>";
+        break;
+        case "ByRef":
+        respuesta = "<"+name+", '"+yytext()+"'>";
+        break;
+        default:
+        respuesta = "Palabra clave->By"+yytext().substring(2,3).toUpperCase()
+                         +yytext().substring(3,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn;
+        break;
+ 
+        }
+
+        return respuesta;
+    }
+
    
 %}
 
 %%
 <YYINITIAL> {
         {SUB}  			{System.out.println(revisionPalabraClave("SUB"));}
-        {MAIN}                  {System.out.println(revisionPalabraClave("MAIN"));}
         {ABRIRPARENTESIS}  	{System.out.println("<ABRIRPARENTESIS>, '"+yytext()+"'>");}
 	{CERRARPARENTESIS}  	{System.out.println("<CERRARPARENTESIS>, '"+yytext()+"'>");}
         {LINE}                  {System.out.println(revisionPalabraClave("LINE"));}
@@ -119,7 +137,7 @@ COMENTARIO = "'"[^\n]*
         {PUNTO}                 {System.out.println("<PUNTO>, '"+yytext()+"'>");}
         {TYPE}                  {System.out.println(revisionPalabraClave("TYPE"));}
         {FUNCTION}  		{System.out.println(revisionPalabraClave("FUNCTION"));}
-        {TIPOPARAMETRO} 	{System.out.println("<TIPOPARAMETRO, '"+yytext()+"'>");}
+        {TIPOPARAMETRO} 	{System.out.println(revisionPalabraClave2("TIPOPARAMETRO"));}
         {COMA}  		{System.out.println("<COMA>, '"+yytext()+"'>");}
 	{RETURN}  		{System.out.println(revisionPalabraClave("RETURN"));}
 	{BEGIN}			{System.out.println(revisionPalabraClave("BEGIN"));}
