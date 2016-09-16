@@ -1,0 +1,16 @@
+package proyectocompi1;
+import java_cup.runtime.*;
+
+terminal SUB, ABRIRPARENTESIS, CERRARPARENTESIS,LINE, WRITE, READ, CONSOLE, PUNTO, TYPE,  ASINACION;
+terminal FUNCTION,  COMA, RETURN, BEGIN, END, IF, THEN, ELSE, FOR, TO, NEXT, DO, WHILE, LOOP, UNTIL, DIM, AS, NOT;
+
+terminal String TIPOPARAMETRO, TIPOVAR, TRUEFALSE, OPLOG, OPREL, OPSUM, OPMULT, IDENTIFICADOR;
+terminal String ESPACIO, NEWLINE, TAB, CADENA, COMENTARIO;
+terminal Integer NUMERO;
+
+
+
+non terminal S;
+
+S::=SUB:s {:System.out.println(s);:}
+    ;
