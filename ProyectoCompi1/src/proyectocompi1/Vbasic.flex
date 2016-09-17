@@ -1,9 +1,11 @@
 package proyectocompi1;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java_cup.runtime.*;
 %%
 %class Lexer
 %line
+%cup
 %int
 %column
 %caseless
@@ -37,7 +39,9 @@ LOOP = Loop
 UNTIL = Until
 DIM = Dim
 AS = As
-TIPOVAR = Integer|String|Boolean
+INTEGER = Integer
+STRING = String
+BOOLEAN = Boolean
 TRUEFALSE = True|False
 NOT = Not
 OPLOG = And|Or|Xor
@@ -127,51 +131,49 @@ COMENTARIO = "'"[^\n]*
 
 %%
 <YYINITIAL> {
-        {SUB}  			{System.out.println(revisionPalabraClave("SUB"));}
-        {ABRIRPARENTESIS}  	{System.out.println("<ABRIRPARENTESIS>, '"+yytext()+"'>");}
-	{CERRARPARENTESIS}  	{System.out.println("<CERRARPARENTESIS>, '"+yytext()+"'>");}
-        {LINE}                  {System.out.println(revisionPalabraClave("LINE"));}
-        {WRITE}                 {System.out.println(revisionPalabraClave("WRITE"));}
-        {READ}                  {System.out.println(revisionPalabraClave("READ"));}
-        {CONSOLE}               {System.out.println(revisionPalabraClave("CONSOLE"));}
-        {PUNTO}                 {System.out.println("<PUNTO>, '"+yytext()+"'>");}
-        {TYPE}                  {System.out.println(revisionPalabraClave("TYPE"));}
-        {FUNCTION}  		{System.out.println(revisionPalabraClave("FUNCTION"));}
-        {TIPOPARAMETRO} 	{System.out.println(revisionPalabraClave2("TIPOPARAMETRO"));}
-        {COMA}  		{System.out.println("<COMA>, '"+yytext()+"'>");}
-	{RETURN}  		{System.out.println(revisionPalabraClave("RETURN"));}
-	{BEGIN}			{System.out.println(revisionPalabraClave("BEGIN"));}
-	{END}			{System.out.println(revisionPalabraClave("END"));}
-	{IF} 			{System.out.println(revisionPalabraClave("IF"));}
-        {THEN}			{System.out.println(revisionPalabraClave("THEN"));}
-        {ELSE} 			{System.out.println(revisionPalabraClave("ELSE"));}
-	{FOR} 			{System.out.println(revisionPalabraClave("FOR"));}
-        {TO} 			{System.out.println(revisionPalabraClave("TO"));}
-        {NEXT} 			{System.out.println(revisionPalabraClave("NEXT"));}
-	{DO}			{System.out.println(revisionPalabraClave("DO"));}
-	{WHILE} 		{System.out.println(revisionPalabraClave("WHILE"));}
-        {LOOP} 			{System.out.println(revisionPalabraClave("LOOP"));}
-        {UNTIL}                 {System.out.println(revisionPalabraClave("UNTIL"));}
-        {DIM}  			{System.out.println(revisionPalabraClave("DIM"));}
-        {AS}  			{System.out.println(revisionPalabraClave("AS"));}
-	{TIPOVAR}  		{System.out.println(revisionPalabraClave("TIPOVAR"));}
-	{TRUEFALSE}  		{System.out.println(revisionPalabraClave("TRUEFALSE"));}
-	{NOT} 			{System.out.println(revisionPalabraClave("NOT"));}
-	{OPLOG}  		{System.out.println(revisionPalabraClave("OPLOG"));}
-	{OPREL} 		{System.out.println("<OPREL, '"+yytext()+"'>");}
-        {ASIGNACION}  		{System.out.println("<ASIGNACION>, '"+yytext()+"'>");}
-        {OPMULT}  		{System.out.println("<OPMULT, '"+yytext()+"'>");}
-	{OPSUM}	 		{System.out.println("<OPSUM, '"+yytext()+"'>");}
-	{NUMERO}  		{System.out.println("<NUMERO, '"+yytext()+"'>");}
-	{IDENTIFICADOR} 	{System.out.println("<IDENTIFICADOR, '"+yytext()+"'>");}
-        {ESPACIO}               {System.out.println("<ESPACIO>, '"+yytext()+"'>");}
-        {NEWLINE}               {System.out.println("<NEWLINE>");}
-        {TAB}                   {System.out.println("<TAB>");}
-	{CADENA}		{System.out.println("<CADENA, '"+extraerCadenaReal()+"'>");}
-        {COMENTARIO}            {System.out.println("<COMENTARIO, '"+yytext().substring(1)+"'>");}
+        {SUB}  			{return new Symbol(sym.SUB,0,0);}
+        {ABRIRPARENTESIS}  	{return new Symbol(sym.ABRIRPARENTESIS,0,0);}
+	{CERRARPARENTESIS}  	{return new Symbol(sym.CERRARPARENTESIS,0,0);}
+        {LINE}                  {return new Symbol(sym.LINE,0,0);}
+        {WRITE}                 {return new Symbol(sym.WRITE,0,0);}
+        {READ}                  {return new Symbol(sym.READ,0,0);}
+        {CONSOLE}               {return new Symbol(sym.CONSOLE,0,0);}
+        {PUNTO}                 {return new Symbol(sym.PUNTO,0,0);}
+        {TYPE}                  {return new Symbol(sym.TYPE,0,0);}
+        {FUNCTION}  		{return new Symbol(sym.FUNCTION,0,0);}
+        {TIPOPARAMETRO} 	{return new Symbol(sym.TIPOPARAMETRO,0,0);}
+        {COMA}  		{return new Symbol(sym.COMA,0,0);}
+	{RETURN}  		{return new Symbol(sym.RETURN,0,0);}
+	{BEGIN}			{return new Symbol(sym.BEGIN,0,0);}
+	{END}			{return new Symbol(sym.END,0,0);}
+	{IF} 			{return new Symbol(sym.IF,0,0);}
+        {THEN}			{return new Symbol(sym.THEN,0,0);}
+        {ELSE} 			{return new Symbol(sym.ELSE,0,0);}
+	{FOR} 			{return new Symbol(sym.FOR,0,0);}
+        {TO} 			{return new Symbol(sym.TO,0,0);}
+        {NEXT} 			{return new Symbol(sym.NEXT,0,0);}
+	{DO}			{return new Symbol(sym.DO,0,0);}
+	{WHILE} 		{return new Symbol(sym.WHILE,0,0);}
+        {LOOP} 			{return new Symbol(sym.LOOP,0,0);}
+        {UNTIL}                 {return new Symbol(sym.UNTIL,0,0);}
+        {DIM}  			{return new Symbol(sym.DIM,0,0);}
+        {AS}  			{return new Symbol(sym.AS,0,0);}
+	{INTEGER}  		{return new Symbol(sym.INTEGER,0,0);}
+	{STRING}  		{return new Symbol(sym.STRING,0,0);}
+        {BOOLEAN}  		{return new Symbol(sym.BOOLEAN,0,0);}
+        {TRUEFALSE}  		{return new Symbol(sym.TRUEFALSE,0,0);}
+	{NOT} 			{return new Symbol(sym.NOT,0,0);}
+	{OPLOG}  		{return new Symbol(sym.OPLOG,0,0);}
+	{OPREL} 		{return new Symbol(sym.OPREL,0,0);}
+        {ASIGNACION}  		{return new Symbol(sym.ASIGNACION,0,0);}
+        {OPMULT}  		{return new Symbol(sym.OPMULT,0,0);}
+	{OPSUM}	 		{return new Symbol(sym.OPSUM,0,0);}
+	{NUMERO}  		{return new Symbol(sym.NUMERO,0,0);}
+	{IDENTIFICADOR} 	{return new Symbol(sym.IDENTIFICADOR,0,0,yytext());}
+        {ESPACIO}               {}
+        {NEWLINE}               {return new Symbol(sym.NEWLINE,0,0);}
+        {TAB}                   {}
+	{CADENA}		{return new Symbol(sym.CADENA,0,0,yytext());}
+        {COMENTARIO}            {return new Symbol(sym.COMENTARIO,0,0,yytext().substring(1));}
         .			{System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);}
         }
-
-<<EOF>> {
-	return 0;
-}

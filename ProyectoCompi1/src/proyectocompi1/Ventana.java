@@ -173,7 +173,8 @@ public class Ventana extends javax.swing.JFrame {
             bw.write(this.jTextArea1.getText());
             bw.close();
             Lexer scanner = new Lexer( new FileReader(archivo));
-            scanner.yylex();
+            parser p = new parser(scanner);
+			p.parse();
             txtaCodigo.setText(baos.toString());
             System.out.flush();
             System.setOut(old);
