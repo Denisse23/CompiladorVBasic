@@ -1,18 +1,79 @@
 package proyectocompi1;
 import java_cup.runtime.*;
 
-terminal SUB, ABRIRPARENTESIS, CERRARPARENTESIS,LINE, WRITE, READ, CONSOLE, PUNTO, TYPE,  ASIGNACION;
-terminal FUNCTION,  COMA, RETURN, BEGIN, END, IF, THEN, ELSE, FOR, TO, NEXT, DO, WHILE, LOOP, UNTIL, DIM, AS, NOT;
+terminal sub, abrirparentesis, cerrarparentesis,line, write, read, console, punto, type,  asignacion, dospuntos;
+terminal function,  coma, begin, end,  then, to, next,  loop, until, dim, as, not;
+terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
-terminal String TIPOPARAMETRO, STRING,BOOLEAN,INTEGER, TRUEFALSE, OPLOG, OPREL, OPSUM, OPMULT, IDENTIFICADOR;
-terminal String ESPACIO, NEWLINE, TAB, CADENA, COMENTARIO;
-terminal Integer NUMERO;
+terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
+terminal String espacio, newline, tab, cadena, comentario;
+terminal Integer numero;
 
-non terminal S;
-S::=  DIM IDENTIFICADOR:id AS INTEGER:in ASIGNACION NUMERO:nm S  {:System.out.println("Todo bien");:}
-    |  DIM IDENTIFICADOR AS BOOLEAN:bl ASIGNACION S        {:System.out.println("ENTRE");:}
-    |  DIM IDENTIFICADOR AS STRING:st ASIGNACION CADENA S  {:System.out.println("ENTRE");:}
-    | error S       {:System.out.println("Hubo un error");:}            
-    ;
+non terminal PROGRAMA;
+non terminal PROGRAMA2;
+non terminal INDENTACION;
+non terminal DECLARACION_VARIABLE;
+non terminal DECLARACION_VARIABLE2;
+non terminal ASIGNAR_TIPO_VARIABLE;
+non terminal FUNCION;
+non terminal PROCEDIMIENTO;
+non terminal LISTA_PARAMENTROS;
+non terminal LISTA_PARAMENTROS2;
+non terminal ESTRUCTURA;
+non terminal BLOQUE_PADRE;
+non terminal BLOQUE;
+non terminal LECTURA;
+non terminal ESCRITURA;
+non terminal BLOQUE_IF;
+non terminal BLOQUE_FOR;
+
+
+PROGRAMA::=newline PROGRAMA2
+           |INDENTACION PROGRAMA2
+           |PROCEDIMIENTO PROGRAMA2
+           |FUNCION PROGRAMA2
+           |ESTRUCTURA PROGRAMA2
+           |BLOQUE PROGRAMA2
+           ;
+PROGRAMA2::=PROGRAMA
+            | 
+            ;
+
+BLOQUE_PADRE::=newline BLOQUE_PADRE
+               |BLOQUE BLOQUE_PADRE
+               |INDENTACION BLOQUE_PADRE
+               |
+               ;
+
+BLOQUE::=DECLARACION_VARIABLE
+         |LECTURA 
+         |ESCRITURA
+         |BLOQUE_IF
+         |BLOQUE_FOR
+         ;
+
+INDENTACION::=espacio 
+              |tab
+              ;
+
+DECLARACION_VARIABLE::=dim espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
+                       ;
+
+DECLARACION_VARIABLE2::=coma espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
+                        | newline
+                        ;
+ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio tipovar
+                       ;
+
+PROCEDIMIENTO::=sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub
+                ;
+
+LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
+                    ;
+
+LISTA_PARAMENTROS2::=coma espacio tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
+                     |
+                     ;
+
 
 

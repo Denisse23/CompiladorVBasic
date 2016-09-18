@@ -39,9 +39,7 @@ LOOP = Loop
 UNTIL = Until
 DIM = Dim
 AS = As
-INTEGER = Integer
-STRING = String
-BOOLEAN = Boolean
+TIPOVAR = Interger|String|Boolean
 TRUEFALSE = True|False
 NOT = Not
 OPLOG = And|Or|Xor
@@ -93,32 +91,32 @@ COMENTARIO = "'"[^\n]*
         return cadena;
     }
 
-    private String revisionPalabraClave(String name){
-        String respuesta = "";
+    private boolean revisionPalabraClave(){
+        boolean respuesta = false;
         Pattern pat = Pattern.compile("[A-Z][a-z]+");
         Matcher mat = pat.matcher(yytext());
         if (mat.matches()) {
-            respuesta = "<"+name+", '"+yytext()+"'>";
+            respuesta = true;
         } else {
-            respuesta = "Palabra clave->"+yytext().substring(0,1).toUpperCase()
-                         +yytext().substring(1,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn;
+            System.out.println("Palabra clave->"+yytext().substring(0,1).toUpperCase()
+                         +yytext().substring(1,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn);
         }
         return respuesta;
     }
 
-    private String revisionPalabraClave2(String name){
-        String respuesta = "";
+    private boolean revisionPalabraClave2(){
+        boolean respuesta = false;
         switch (yytext()) {
  
         case "ByVal":
-        respuesta = "<"+name+", '"+yytext()+"'>";
+        respuesta = true;
         break;
         case "ByRef":
-        respuesta = "<"+name+", '"+yytext()+"'>";
+        respuesta = true;
         break;
         default:
-        respuesta = "Palabra clave->By"+yytext().substring(2,3).toUpperCase()
-                         +yytext().substring(3,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn;
+        System.out.println("Palabra clave->By"+yytext().substring(2,3).toUpperCase()
+                         +yytext().substring(3,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn);
         break;
  
         }
@@ -131,49 +129,47 @@ COMENTARIO = "'"[^\n]*
 
 %%
 <YYINITIAL> {
-        {SUB}  			{return new Symbol(sym.SUB,0,0);}
-        {ABRIRPARENTESIS}  	{return new Symbol(sym.ABRIRPARENTESIS,0,0);}
-	{CERRARPARENTESIS}  	{return new Symbol(sym.CERRARPARENTESIS,0,0);}
-        {LINE}                  {return new Symbol(sym.LINE,0,0);}
-        {WRITE}                 {return new Symbol(sym.WRITE,0,0);}
-        {READ}                  {return new Symbol(sym.READ,0,0);}
-        {CONSOLE}               {return new Symbol(sym.CONSOLE,0,0);}
-        {PUNTO}                 {return new Symbol(sym.PUNTO,0,0);}
-        {TYPE}                  {return new Symbol(sym.TYPE,0,0);}
-        {FUNCTION}  		{return new Symbol(sym.FUNCTION,0,0);}
-        {TIPOPARAMETRO} 	{return new Symbol(sym.TIPOPARAMETRO,0,0);}
-        {COMA}  		{return new Symbol(sym.COMA,0,0);}
-	{RETURN}  		{return new Symbol(sym.RETURN,0,0);}
-	{BEGIN}			{return new Symbol(sym.BEGIN,0,0);}
-	{END}			{return new Symbol(sym.END,0,0);}
-	{IF} 			{return new Symbol(sym.IF,0,0);}
-        {THEN}			{return new Symbol(sym.THEN,0,0);}
-        {ELSE} 			{return new Symbol(sym.ELSE,0,0);}
-	{FOR} 			{return new Symbol(sym.FOR,0,0);}
-        {TO} 			{return new Symbol(sym.TO,0,0);}
-        {NEXT} 			{return new Symbol(sym.NEXT,0,0);}
-	{DO}			{return new Symbol(sym.DO,0,0);}
-	{WHILE} 		{return new Symbol(sym.WHILE,0,0);}
-        {LOOP} 			{return new Symbol(sym.LOOP,0,0);}
-        {UNTIL}                 {return new Symbol(sym.UNTIL,0,0);}
-        {DIM}  			{return new Symbol(sym.DIM,0,0);}
-        {AS}  			{return new Symbol(sym.AS,0,0);}
-	{INTEGER}  		{return new Symbol(sym.INTEGER,0,0);}
-	{STRING}  		{return new Symbol(sym.STRING,0,0);}
-        {BOOLEAN}  		{return new Symbol(sym.BOOLEAN,0,0);}
-        {TRUEFALSE}  		{return new Symbol(sym.TRUEFALSE,0,0);}
-	{NOT} 			{return new Symbol(sym.NOT,0,0);}
-	{OPLOG}  		{return new Symbol(sym.OPLOG,0,0);}
-	{OPREL} 		{return new Symbol(sym.OPREL,0,0);}
-        {ASIGNACION}  		{return new Symbol(sym.ASIGNACION,0,0);}
-        {OPMULT}  		{return new Symbol(sym.OPMULT,0,0);}
-	{OPSUM}	 		{return new Symbol(sym.OPSUM,0,0);}
-	{NUMERO}  		{return new Symbol(sym.NUMERO,0,0);}
-	{IDENTIFICADOR} 	{return new Symbol(sym.IDENTIFICADOR,0,0,yytext());}
-        {ESPACIO}               {}
-        {NEWLINE}               {return new Symbol(sym.NEWLINE,0,0);}
-        {TAB}                   {}
-	{CADENA}		{return new Symbol(sym.CADENA,0,0,yytext());}
-        {COMENTARIO}            {return new Symbol(sym.COMENTARIO,0,0,yytext().substring(1));}
+        {SUB}  			{if(revisionPalabraClave()){return new Symbol(sym.sub,0,0);}}
+        {ABRIRPARENTESIS}  	{return new Symbol(sym.abrirparentesis,0,0);}
+	{CERRARPARENTESIS}  	{return new Symbol(sym.cerrarparentesis,0,0);}
+        {LINE}                  {if(revisionPalabraClave()){return new Symbol(sym.line,0,0);}}
+        {WRITE}                 {if(revisionPalabraClave()){return new Symbol(sym.write,0,0);}}
+        {READ}                  {if(revisionPalabraClave()){return new Symbol(sym.read,0,0);}}
+        {CONSOLE}               {if(revisionPalabraClave()){return new Symbol(sym.console,0,0);}}
+        {PUNTO}                 {return new Symbol(sym.punto,0,0);}
+        {TYPE}                  {if(revisionPalabraClave()){return new Symbol(sym.type,0,0);}}
+        {FUNCTION}  		{if(revisionPalabraClave()){return new Symbol(sym.function,0,0);}}
+        {TIPOPARAMETRO} 	{if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0);}}
+        {COMA}  		{if(revisionPalabraClave()){return new Symbol(sym.coma,0,0);}}
+	{RETURN}  		{if(revisionPalabraClave()){return new Symbol(sym.Return,0,0);}}
+	{BEGIN}			{if(revisionPalabraClave()){return new Symbol(sym.begin,0,0);}}
+	{END}			{if(revisionPalabraClave()){return new Symbol(sym.end,0,0);}}
+	{IF} 			{if(revisionPalabraClave()){return new Symbol(sym.If,0,0);}}
+        {THEN}			{if(revisionPalabraClave()){return new Symbol(sym.then,0,0);}}
+        {ELSE} 			{if(revisionPalabraClave()){return new Symbol(sym.Else,0,0);}}
+	{FOR} 			{if(revisionPalabraClave()){return new Symbol(sym.For,0,0);}}
+        {TO} 			{if(revisionPalabraClave()){return new Symbol(sym.to,0,0);}}
+        {NEXT} 			{if(revisionPalabraClave()){return new Symbol(sym.next,0,0);}}
+	{DO}			{if(revisionPalabraClave()){return new Symbol(sym.Do,0,0);}}
+	{WHILE} 		{if(revisionPalabraClave()){return new Symbol(sym.While,0,0);}}
+        {LOOP} 			{if(revisionPalabraClave()){return new Symbol(sym.loop,0,0);}}
+        {UNTIL}                 {if(revisionPalabraClave()){return new Symbol(sym.until,0,0);}}
+        {DIM}  			{if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);}}
+        {AS}  			{if(revisionPalabraClave()){return new Symbol(sym.as,0,0);}}
+	{TIPOVAR}  		{if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0);}}
+        {TRUEFALSE}  		{if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0);}}
+	{NOT} 			{if(revisionPalabraClave()){return new Symbol(sym.not,0,0);}}
+	{OPLOG}  		{return new Symbol(sym.oplog,0,0);}
+	{OPREL} 		{return new Symbol(sym.oprel,0,0);}
+        {ASIGNACION}  		{return new Symbol(sym.asignacion,0,0);}
+        {OPMULT}  		{return new Symbol(sym.opmult,0,0);}
+	{OPSUM}	 		{return new Symbol(sym.opsum,0,0);}
+	{NUMERO}  		{return new Symbol(sym.numero,0,0);}
+	{IDENTIFICADOR} 	{return new Symbol(sym.identificador,0,0,yytext());}
+        {ESPACIO}               {return new Symbol(sym.espacio,0,0);}
+        {NEWLINE}               {return new Symbol(sym.newline,0,0);}
+        {TAB}                   {return new Symbol(sym.tab,0,0);}
+	{CADENA}		{return new Symbol(sym.cadena,0,0,extraerCadenaReal());}
+        {COMENTARIO}            {return new Symbol(sym.comentario,0,0,yytext().substring(1));}
         .			{System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);}
         }
