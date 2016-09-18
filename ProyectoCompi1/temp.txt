@@ -1,3 +1,1 @@
-Dim 12
-Dim kehimer As Integer = 12
-Dim 34
+Sub m(ByVal j As Integer

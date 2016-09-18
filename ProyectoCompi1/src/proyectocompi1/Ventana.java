@@ -158,7 +158,7 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        
+        txtaCodigo.setText("");
         try{
                 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -173,6 +173,7 @@ public class Ventana extends javax.swing.JFrame {
             bw.write(this.jTextArea1.getText());
             bw.close();
             Lexer scanner = new Lexer( new FileReader(archivo));
+            //scanner.yylex();
             parser p = new parser(scanner);
 			p.parse();
             txtaCodigo.setText(baos.toString());

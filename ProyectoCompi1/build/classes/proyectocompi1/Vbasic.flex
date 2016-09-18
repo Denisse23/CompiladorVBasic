@@ -39,7 +39,7 @@ LOOP = Loop
 UNTIL = Until
 DIM = Dim
 AS = As
-TIPOVAR = Interger|String|Boolean
+TIPOVAR = Integer|String|Boolean
 TRUEFALSE = True|False
 NOT = Not
 OPLOG = And|Or|Xor
@@ -52,7 +52,7 @@ NUMERO = {DIGITO}+
 LETRA = [a-zA-Z]
 IDENTIFICADOR = {LETRA}(_|{DIGITO}|{LETRA})*
 ESPACIO = " "
-NEWLINE = \n+
+NEWLINE = "\n"+
 TAB = "\t"
 CADENA = \"[^\n\"]*\"({ESPACIO}"&_"{NEWLINE}({ESPACIO}|\t)*\"[^\n\"]*\")*
 COMENTARIO = "'"[^\n]* 
@@ -139,8 +139,8 @@ COMENTARIO = "'"[^\n]*
         {PUNTO}                 {return new Symbol(sym.punto,0,0);}
         {TYPE}                  {if(revisionPalabraClave()){return new Symbol(sym.type,0,0);}}
         {FUNCTION}  		{if(revisionPalabraClave()){return new Symbol(sym.function,0,0);}}
-        {TIPOPARAMETRO} 	{if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0);}}
-        {COMA}  		{if(revisionPalabraClave()){return new Symbol(sym.coma,0,0);}}
+        {TIPOPARAMETRO} 	{if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0, yytext());}}
+        {COMA}  		{return new Symbol(sym.coma,0,0);}
 	{RETURN}  		{if(revisionPalabraClave()){return new Symbol(sym.Return,0,0);}}
 	{BEGIN}			{if(revisionPalabraClave()){return new Symbol(sym.begin,0,0);}}
 	{END}			{if(revisionPalabraClave()){return new Symbol(sym.end,0,0);}}
@@ -156,19 +156,19 @@ COMENTARIO = "'"[^\n]*
         {UNTIL}                 {if(revisionPalabraClave()){return new Symbol(sym.until,0,0);}}
         {DIM}  			{if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);}}
         {AS}  			{if(revisionPalabraClave()){return new Symbol(sym.as,0,0);}}
-	{TIPOVAR}  		{if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0);}}
-        {TRUEFALSE}  		{if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0);}}
+	{TIPOVAR}  		{if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0, yytext());}}
+        {TRUEFALSE}  		{if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0, yytext());}}
 	{NOT} 			{if(revisionPalabraClave()){return new Symbol(sym.not,0,0);}}
-	{OPLOG}  		{return new Symbol(sym.oplog,0,0);}
-	{OPREL} 		{return new Symbol(sym.oprel,0,0);}
+	{OPLOG}  		{return new Symbol(sym.oplog,0,0, yytext());}
+	{OPREL} 		{return new Symbol(sym.oprel,0,0, yytext());}
         {ASIGNACION}  		{return new Symbol(sym.asignacion,0,0);}
-        {OPMULT}  		{return new Symbol(sym.opmult,0,0);}
-	{OPSUM}	 		{return new Symbol(sym.opsum,0,0);}
-	{NUMERO}  		{return new Symbol(sym.numero,0,0);}
+        {OPMULT}  		{return new Symbol(sym.opmult,0,0, yytext());}
+	{OPSUM}	 		{return new Symbol(sym.opsum,0,0, yytext());}
+	{NUMERO}  		{return new Symbol(sym.numero,0,0, Integer.parseInt(yytext()));}
 	{IDENTIFICADOR} 	{return new Symbol(sym.identificador,0,0,yytext());}
-        {ESPACIO}               {return new Symbol(sym.espacio,0,0);}
-        {NEWLINE}               {return new Symbol(sym.newline,0,0);}
-        {TAB}                   {return new Symbol(sym.tab,0,0);}
+        {ESPACIO}               {return new Symbol(sym.espacio,0,0, yytext());}
+        {NEWLINE}               {return new Symbol(sym.newline,0,0, yytext());}
+        {TAB}                   {return new Symbol(sym.tab,0,0, yytext());}
 	{CADENA}		{return new Symbol(sym.cadena,0,0,extraerCadenaReal());}
         {COMENTARIO}            {return new Symbol(sym.comentario,0,0,yytext().substring(1));}
         .			{System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);}

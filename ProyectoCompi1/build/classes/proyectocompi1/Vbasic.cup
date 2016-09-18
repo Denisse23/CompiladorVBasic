@@ -1,14 +1,28 @@
 package proyectocompi1;
 import java_cup.runtime.*;
 
+
+parser code {:
+     /*
+     public void syntax_error(Symbol s){
+ 	System.out.print(s);
+     }
+    
+     public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+         System.out.print(s);
+     }
+     */
+:};
+
 terminal sub, abrirparentesis, cerrarparentesis,line, write, read, console, punto, type,  asignacion, dospuntos;
 terminal function,  coma, begin, end,  then, to, next,  loop, until, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
-terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
-terminal String espacio, newline, tab, cadena, comentario;
+terminal tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
+terminal espacio, newline, tab, cadena, comentario;
 terminal Integer numero;
 
+non terminal INICIO;
 non terminal PROGRAMA;
 non terminal PROGRAMA2;
 non terminal INDENTACION;
@@ -27,9 +41,11 @@ non terminal ESCRITURA;
 non terminal BLOQUE_IF;
 non terminal BLOQUE_FOR;
 
+INICIO::=newline
+         |PROGRAMA
+         ;
 
-PROGRAMA::=newline PROGRAMA2
-           |INDENTACION PROGRAMA2
+PROGRAMA::=INDENTACION PROGRAMA2
            |PROCEDIMIENTO PROGRAMA2
            |FUNCION PROGRAMA2
            |ESTRUCTURA PROGRAMA2
@@ -39,8 +55,7 @@ PROGRAMA2::=PROGRAMA
             | 
             ;
 
-BLOQUE_PADRE::=newline BLOQUE_PADRE
-               |BLOQUE BLOQUE_PADRE
+BLOQUE_PADRE::=BLOQUE BLOQUE_PADRE
                |INDENTACION BLOQUE_PADRE
                |
                ;
@@ -65,7 +80,7 @@ DECLARACION_VARIABLE2::=coma espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
 ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio tipovar
                        ;
 
-PROCEDIMIENTO::=sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub
+PROCEDIMIENTO::=sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
                 ;
 
 LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
@@ -74,6 +89,5 @@ LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTRO
 LISTA_PARAMENTROS2::=coma espacio tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
                      |
                      ;
-
 
 
