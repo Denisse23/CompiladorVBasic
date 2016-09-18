@@ -30,7 +30,10 @@ non terminal DECLARACION_VARIABLE;
 non terminal DECLARACION_VARIABLE2;
 non terminal ASIGNAR_TIPO_VARIABLE;
 non terminal FUNCION;
+non terminal FUNCION2;
+non terminal OPCIONES_RETURN;
 non terminal PROCEDIMIENTO;
+non terminal PROCEDIMIENTO2;
 non terminal LISTA_PARAMENTROS;
 non terminal LISTA_PARAMENTROS2;
 non terminal ESTRUCTURA;
@@ -57,6 +60,7 @@ PROGRAMA2::=PROGRAMA
 
 BLOQUE_PADRE::=BLOQUE BLOQUE_PADRE
                |INDENTACION BLOQUE_PADRE
+               |newline
                |
                ;
 
@@ -80,8 +84,12 @@ DECLARACION_VARIABLE2::=coma espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
 ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio tipovar
                        ;
 
-PROCEDIMIENTO::=sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
+PROCEDIMIENTO::=sub espacio identificador abrirparentesis PROCEDIMIENTO2
                 ;
+
+PROCEDIMIENTO2::=cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
+                 |LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
+                 ;
 
 LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
                     ;
@@ -89,5 +97,20 @@ LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTRO
 LISTA_PARAMENTROS2::=coma espacio tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
                      |
                      ;
+
+FUNCION::=function espacio identificador abrirparentesis FUNCION2
+                ;
+
+FUNCION2::=cerrarparentesis espacio as espacio tipovar newline BLOQUE_PADRE Return OPCIONES_RETURN newline end espacio sub newline
+           |cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
+           |LISTA_PARAMENTROS cerrarparentesis espacio as tipovar newline BLOQUE_PADRE Return OPCIONES_RETURN newline end espacio sub newline
+           |LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
+           ;
+OPCIONES_RETURN::=identificador
+                  |truefalse
+                  |numero
+                  |cadena
+                  ;
+
 
 
