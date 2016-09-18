@@ -14,7 +14,7 @@ parser code {:
      */
 :};
 
-terminal sub, abrirparentesis, cerrarparentesis,line, write, read, console, punto, type,  asignacion, dospuntos;
+terminal sub, abrirparentesis, cerrarparentesis,line, write, read, console, punto, type,  asignacion, empty;
 terminal function,  coma, begin, end,  then, to, next,  loop, until, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
@@ -26,6 +26,8 @@ non terminal INICIO;
 non terminal PROGRAMA;
 non terminal PROGRAMA2;
 non terminal INDENTACION;
+non terminal INDENTACION2;
+non terminal INDENTACION3;
 non terminal DECLARACION_VARIABLE;
 non terminal DECLARACION_VARIABLE2;
 non terminal ASIGNAR_TIPO_VARIABLE;
@@ -33,7 +35,6 @@ non terminal FUNCION;
 non terminal FUNCION2;
 non terminal OPCIONES_RETURN;
 non terminal PROCEDIMIENTO;
-non terminal PROCEDIMIENTO2;
 non terminal LISTA_PARAMENTROS;
 non terminal LISTA_PARAMENTROS2;
 non terminal ESTRUCTURA;
@@ -43,25 +44,33 @@ non terminal LECTURA;
 non terminal ESCRITURA;
 non terminal BLOQUE_IF;
 non terminal BLOQUE_FOR;
+non terminal TIPOS;
+non terminal VALORES;
+non terminal ARGUMENTOS;
+non terminal ARGUMENTOS2;
+non terminal EXP;
 
-INICIO::=newline
-         |PROGRAMA
+INICIO::=PROGRAMA
+         |newline PROGRAMA
          ;
 
-PROGRAMA::=INDENTACION PROGRAMA2
-           |PROCEDIMIENTO PROGRAMA2
-           |FUNCION PROGRAMA2
-           |ESTRUCTURA PROGRAMA2
-           |BLOQUE PROGRAMA2
+PROGRAMA::=INDENTACION PROGRAMA
+           |INDENTACION PROGRAMA2
+           |PROCEDIMIENTO INDENTACION2 PROGRAMA2
+           |FUNCION INDENTACION2 PROGRAMA2
+           |ESTRUCTURA INDENTACION2 PROGRAMA2
+           |BLOQUE INDENTACION2 PROGRAMA2
            ;
-PROGRAMA2::=PROGRAMA
-            | 
+PROGRAMA2::=newline PROGRAMA
+            |newline
+            |
             ;
 
-BLOQUE_PADRE::=BLOQUE BLOQUE_PADRE
-               |INDENTACION BLOQUE_PADRE
-               |newline
-               |
+BLOQUE_PADRE::=newline BLOQUE INDENTACION2  BLOQUE_PADRE
+               |newline INDENTACION2
+               |newline INDENTACION2 newline
+               |newline INDENTACION2 newline INDENTACION3
+               |newline INDENTACION3 BLOQUE INDENTACION2 BLOQUE_PADRE
                ;
 
 BLOQUE::=DECLARACION_VARIABLE
@@ -71,6 +80,13 @@ BLOQUE::=DECLARACION_VARIABLE
          |BLOQUE_FOR
          ;
 
+INDENTACION3::=INDENTACION 
+              |INDENTACION INDENTACION3
+              ;
+INDENTACION2::=INDENTACION INDENTACION2
+               |
+               ;
+
 INDENTACION::=espacio 
               |tab
               ;
@@ -79,17 +95,18 @@ DECLARACION_VARIABLE::=dim espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
                        ;
 
 DECLARACION_VARIABLE2::=coma espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
-                        | newline
+                        |
                         ;
-ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio tipovar
+ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio TIPOS
                        ;
 
-PROCEDIMIENTO::=sub espacio identificador abrirparentesis PROCEDIMIENTO2
-                ;
+TIPOS::=tipovar
+          |identificador
+          ;
 
-PROCEDIMIENTO2::=cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
-                 |LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
-                 ;
+PROCEDIMIENTO::=sub espacio identificador abrirparentesis cerrarparentesis INDENTACION2 BLOQUE_PADRE end espacio sub
+                |sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 BLOQUE_PADRE end espacio sub
+                ;
 
 LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
                     ;
@@ -98,19 +115,33 @@ LISTA_PARAMENTROS2::=coma espacio tipoparametro espacio ASIGNAR_TIPO_VARIABLE LI
                      |
                      ;
 
-FUNCION::=function espacio identificador abrirparentesis FUNCION2
-                ;
 
-FUNCION2::=cerrarparentesis espacio as espacio tipovar newline BLOQUE_PADRE Return OPCIONES_RETURN newline end espacio sub newline
-           |cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
-           |LISTA_PARAMENTROS cerrarparentesis espacio as tipovar newline BLOQUE_PADRE Return OPCIONES_RETURN newline end espacio sub newline
-           |LISTA_PARAMENTROS cerrarparentesis newline BLOQUE_PADRE end espacio sub newline
-           ;
-OPCIONES_RETURN::=identificador
-                  |truefalse
-                  |numero
-                  |cadena
+FUNCION::=function espacio identificador abrirparentesis cerrarparentesis espacio as espacio TIPOS INDENTACION2 BLOQUE_PADRE Return espacio OPCIONES_RETURN INDENTACION2 newline INDENTACION2 end espacio function
+          |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis espacio as espacio TIPOS INDENTACION2 BLOQUE_PADRE Return espacio OPCIONES_RETURN INDENTACION2 newline INDENTACION2 end espacio function
+          |function espacio identificador abrirparentesis cerrarparentesis INDENTACION2 BLOQUE_PADRE end espacio function
+          |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 BLOQUE_PADRE end espacio function
+          ;
+
+OPCIONES_RETURN::=EXP
+                  |abrirparentesis ARGUMENTOS cerrarparentesis
+                  |abrirparentesis cerrarparentesis
                   ;
+ARGUMENTOS::=EXP ARGUMENTOS2
+             ;
 
+ARGUMENTOS2::=coma espacio EXP ARGUMENTOS2
+              |
+              ;
+VALORES::=identificador
+          |truefalse
+          |numero
+          |cadena
+          ;
+
+EXP::=VALORES
+       |identificador punto identificador
+       |VALORES opmult EXP
+       |VALORES opsum EXP
+       ;
 
 

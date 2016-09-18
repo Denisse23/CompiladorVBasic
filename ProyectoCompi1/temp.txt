@@ -1,2 +1,3 @@
-Function d() As Integer
-Return
+Function d(ByVal h As Integer) As Integer
+Return (5,5)
+End Function

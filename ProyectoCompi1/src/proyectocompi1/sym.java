@@ -9,6 +9,7 @@ package proyectocompi1;
 public class sym {
   /* terminals */
   public static final int dim = 22;
+  public static final int empty = 12;
   public static final int function = 13;
   public static final int newline = 40;
   public static final int loop = 20;
@@ -40,7 +41,6 @@ public class sym {
   public static final int error = 1;
   public static final int truefalse = 33;
   public static final int punto = 9;
-  public static final int dospuntos = 12;
   public static final int Do = 25;
   public static final int oplog = 34;
   public static final int not = 24;
@@ -66,7 +66,7 @@ public class sym {
   "punto",
   "type",
   "asignacion",
-  "dospuntos",
+  "empty",
   "function",
   "coma",
   "begin",
