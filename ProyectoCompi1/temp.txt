@@ -1,3 +1,5 @@
-Function d(ByVal h As Integer) As Integer
-Return (5,5)
-End Function
+Sub m()
+If  t = 6 Then
+Else
+End If
+End Sub

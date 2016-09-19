@@ -36,7 +36,6 @@ NEXT = Next
 DO = Do
 WHILE = While
 LOOP = Loop
-UNTIL = Until
 DIM = Dim
 AS = As
 TIPOVAR = Integer|String|Boolean
@@ -153,7 +152,6 @@ COMENTARIO = "'"[^\n]*
 	{DO}			{if(revisionPalabraClave()){return new Symbol(sym.Do,0,0);}}
 	{WHILE} 		{if(revisionPalabraClave()){return new Symbol(sym.While,0,0);}}
         {LOOP} 			{if(revisionPalabraClave()){return new Symbol(sym.loop,0,0);}}
-        {UNTIL}                 {if(revisionPalabraClave()){return new Symbol(sym.until,0,0);}}
         {DIM}  			{if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);}}
         {AS}  			{if(revisionPalabraClave()){return new Symbol(sym.as,0,0);}}
 	{TIPOVAR}  		{if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0, yytext());}}
