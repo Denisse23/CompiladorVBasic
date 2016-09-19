@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package proyectocompi1;
+package pc;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -159,8 +159,8 @@ public class Ventana extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         txtaCodigo.setText("");
-        try{
-                
+        
+            try{    
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream ps = new PrintStream(baos);
             // IMPORTANT: Save the old System.out!
@@ -174,8 +174,12 @@ public class Ventana extends javax.swing.JFrame {
             bw.close();
             Lexer scanner = new Lexer( new FileReader(archivo));
             //scanner.yylex();
+            try{
             parser p = new parser(scanner);
 			p.parse();
+            }catch (Exception e){
+                System.out.println(e);
+            }
             txtaCodigo.setText(baos.toString());
             System.out.flush();
             System.setOut(old);
@@ -211,6 +215,7 @@ public class Ventana extends javax.swing.JFrame {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Ventana.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */

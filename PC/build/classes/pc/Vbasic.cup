@@ -1,4 +1,4 @@
-package proyectocompi1;
+package pc;
 import java_cup.runtime.*;
 
 
@@ -95,10 +95,7 @@ CONTENIDO_SUB_PADRE::=newline INDENTACION2 LECTURA INDENTACION2  CONTENIDO_SUB_P
                |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_SUB_PADRE
                |newline INDENTACION2  ESCRITURA INDENTACION2 CONTENIDO_SUB_PADRE
                |newline INDENTACION2
-               |newline INDENTACION2 newline
-               |newline INDENTACION2 newline INDENTACION3
-               |newline INDENTACION2 newline CONTENIDO_SUB_PADRE
-               |newline INDENTACION2 newline INDENTACION3 CONTENIDO_SUB_PADRE
+               |newline INDENTACION2 CONTENIDO_SUB_PADRE
                |newline INDENTACION2 ASIGNACIONES_SUB
                ;
 

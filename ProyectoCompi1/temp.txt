@@ -1,5 +1,0 @@
-Sub m()
-If  t = 6 Then
-Else
-End If
-End Sub

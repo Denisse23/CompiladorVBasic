@@ -1,7 +1,8 @@
-package proyectocompi1;
+package pc;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java_cup.runtime.*;
+import java_cup.runtime.Symbol;
 %%
 %class Lexer
 %line
@@ -171,3 +172,9 @@ COMENTARIO = "'"[^\n]*
         {COMENTARIO}            {return new Symbol(sym.comentario,0,0,yytext().substring(1));}
         .			{System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);}
         }
+
+<<EOF>>                         { 
+                                          
+                                            return new Symbol(sym.EOF,0,0); 
+
+                                        }
