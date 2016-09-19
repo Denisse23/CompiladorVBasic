@@ -1,1 +1,3 @@
-Dim
+Function m() As String
+Return 5 + 5 
+End Function

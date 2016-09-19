@@ -18,7 +18,6 @@ class Lexer implements java_cup.runtime.Scanner {
 
   /** initial size of the lookahead buffer */
   private static final int ZZ_BUFFERSIZE = 16384;
-  private static final String ZZ_NL = System.getProperty("line.separator");
 
   /** lexical states */
   public static final int YYINITIAL = 0;
@@ -534,23 +533,6 @@ class Lexer implements java_cup.runtime.Scanner {
     return map;
   }
 
-  private static String zzToPrintable(String str) {
-    StringBuilder builder = new StringBuilder();
-    for (int n = 0 ; n < str.length() ; ) {
-      int ch = str.codePointAt(n);
-      int charCount = Character.charCount(ch);
-      n += charCount;
-      if (ch > 31 && ch < 127) {
-        builder.append((char)ch);
-      } else if (charCount == 1) {
-        builder.append(String.format("\\u%04X", ch));
-      } else {
-        builder.append(String.format("\\U%06X", ch));
-      }
-    }
-    return builder.toString();
-  }
-
 
   /**
    * Refills the input buffer.
@@ -903,320 +885,181 @@ class Lexer implements java_cup.runtime.Scanner {
         zzAtEOF = true;
             zzDoEOF();
               {
-                System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: <<EOF>>");
-                System.out.println("action [177] { return new Symbol(sym.EOF,0,0); }");
                 return new Symbol(sym.EOF,0,0);
               }
       }
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [174] { System.out.println(\"No se reconoce el token: \"+yytext()+\". Error->Linea: \"+yyline+\", columna: \"+yycolumn); }");
             { System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);
             }
           case 43: break;
           case 2: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [168] { return new Symbol(sym.identificador,0,0,yytext()); }");
             { return new Symbol(sym.identificador,0,0,yytext());
             }
           case 44: break;
           case 3: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [134] { return new Symbol(sym.abrirparentesis,0,0); }");
             { return new Symbol(sym.abrirparentesis,0,0);
             }
           case 45: break;
           case 4: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [135] { return new Symbol(sym.cerrarparentesis,0,0); }");
             { return new Symbol(sym.cerrarparentesis,0,0);
             }
           case 46: break;
           case 5: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [140] { return new Symbol(sym.punto,0,0); }");
             { return new Symbol(sym.punto,0,0);
             }
           case 47: break;
           case 6: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [144] { return new Symbol(sym.coma,0,0); }");
             { return new Symbol(sym.coma,0,0);
             }
           case 48: break;
           case 7: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [163] { return new Symbol(sym.oprel,0,0, yytext()); }");
             { return new Symbol(sym.oprel,0,0, yytext());
             }
           case 49: break;
           case 8: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [164] { return new Symbol(sym.asignacion,0,0); }");
             { return new Symbol(sym.asignacion,0,0);
             }
           case 50: break;
           case 9: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [165] { return new Symbol(sym.opmult,0,0, yytext()); }");
             { return new Symbol(sym.opmult,0,0, yytext());
             }
           case 51: break;
           case 10: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [166] { return new Symbol(sym.opsum,0,0, yytext()); }");
             { return new Symbol(sym.opsum,0,0, yytext());
             }
           case 52: break;
           case 11: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [167] { return new Symbol(sym.numero,0,0, Integer.parseInt(yytext())); }");
             { return new Symbol(sym.numero,0,0, Integer.parseInt(yytext()));
             }
           case 53: break;
           case 12: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [169] { return new Symbol(sym.espacio,0,0, yytext()); }");
             { return new Symbol(sym.espacio,0,0, yytext());
             }
           case 54: break;
           case 13: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [170] { return new Symbol(sym.newline,0,0, yytext()); }");
             { return new Symbol(sym.newline,0,0, yytext());
             }
           case 55: break;
           case 14: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [171] { return new Symbol(sym.tab,0,0, yytext()); }");
             { return new Symbol(sym.tab,0,0, yytext());
             }
           case 56: break;
           case 15: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [173] { return new Symbol(sym.comentario,0,0,yytext().substring(1)); }");
             { return new Symbol(sym.comentario,0,0,yytext().substring(1));
             }
           case 57: break;
           case 16: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [148] { if(revisionPalabraClave()){return new Symbol(sym.If,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.If,0,0);}
             }
           case 58: break;
           case 17: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [152] { if(revisionPalabraClave()){return new Symbol(sym.to,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.to,0,0);}
             }
           case 59: break;
           case 18: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [158] { if(revisionPalabraClave()){return new Symbol(sym.as,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.as,0,0);}
             }
           case 60: break;
           case 19: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [154] { if(revisionPalabraClave()){return new Symbol(sym.Do,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.Do,0,0);}
             }
           case 61: break;
           case 20: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [162] { return new Symbol(sym.oplog,0,0, yytext()); }");
             { return new Symbol(sym.oplog,0,0, yytext());
             }
           case 62: break;
           case 21: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [172] { return new Symbol(sym.cadena,0,0,extraerCadenaReal()); }");
             { return new Symbol(sym.cadena,0,0,extraerCadenaReal());
             }
           case 63: break;
           case 22: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [133] { if(revisionPalabraClave()){return new Symbol(sym.sub,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.sub,0,0);}
             }
           case 64: break;
           case 23: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [161] { if(revisionPalabraClave()){return new Symbol(sym.not,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.not,0,0);}
             }
           case 65: break;
           case 24: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [147] { if(revisionPalabraClave()){return new Symbol(sym.end,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.end,0,0);}
             }
           case 66: break;
           case 25: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [157] { if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);}
             }
           case 67: break;
           case 26: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [151] { if(revisionPalabraClave()){return new Symbol(sym.For,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.For,0,0);}
             }
           case 68: break;
           case 27: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [136] { if(revisionPalabraClave()){return new Symbol(sym.line,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.line,0,0);}
             }
           case 69: break;
           case 28: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [156] { if(revisionPalabraClave()){return new Symbol(sym.loop,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.loop,0,0);}
             }
           case 70: break;
           case 29: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [153] { if(revisionPalabraClave()){return new Symbol(sym.next,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.next,0,0);}
             }
           case 71: break;
           case 30: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [150] { if(revisionPalabraClave()){return new Symbol(sym.Else,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.Else,0,0);}
             }
           case 72: break;
           case 31: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [138] { if(revisionPalabraClave()){return new Symbol(sym.read,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.read,0,0);}
             }
           case 73: break;
           case 32: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [160] { if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0, yytext());} }");
             { if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0, yytext());}
             }
           case 74: break;
           case 33: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [141] { if(revisionPalabraClave()){return new Symbol(sym.type,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.type,0,0);}
             }
           case 75: break;
           case 34: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [149] { if(revisionPalabraClave()){return new Symbol(sym.then,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.then,0,0);}
             }
           case 76: break;
           case 35: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [146] { if(revisionPalabraClave()){return new Symbol(sym.begin,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.begin,0,0);}
             }
           case 77: break;
           case 36: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [143] { if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0, yytext());} }");
             { if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0, yytext());}
             }
           case 78: break;
           case 37: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [137] { if(revisionPalabraClave()){return new Symbol(sym.write,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.write,0,0);}
             }
           case 79: break;
           case 38: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [155] { if(revisionPalabraClave()){return new Symbol(sym.While,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.While,0,0);}
             }
           case 80: break;
           case 39: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [159] { if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0, yytext());} }");
             { if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0, yytext());}
             }
           case 81: break;
           case 40: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [145] { if(revisionPalabraClave()){return new Symbol(sym.Return,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.Return,0,0);}
             }
           case 82: break;
           case 41: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [139] { if(revisionPalabraClave()){return new Symbol(sym.console,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.console,0,0);}
             }
           case 83: break;
           case 42: 
-            System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [142] { if(revisionPalabraClave()){return new Symbol(sym.function,0,0);} }");
             { if(revisionPalabraClave()){return new Symbol(sym.function,0,0);}
             }
           case 84: break;
           default:
             zzScanError(ZZ_NO_MATCH);
-        }
-      }
-    }
-  }
-
-  /**
-   * Runs the scanner on input files.
-   *
-   * This main method is the debugging routine for the scanner.
-   * It prints debugging information about each returned token to
-   * System.out until the end of file is reached, or an error occured.
-   *
-   * @param argv   the command line, contains the filenames to run
-   *               the scanner on.
-   */
-  public static void main(String argv[]) {
-    if (argv.length == 0) {
-      System.out.println("Usage : java Lexer [ --encoding <name> ] <inputfile(s)>");
-    }
-    else {
-      int firstFilePos = 0;
-      String encodingName = "UTF-8";
-      if (argv[0].equals("--encoding")) {
-        firstFilePos = 2;
-        encodingName = argv[1];
-        try {
-          java.nio.charset.Charset.forName(encodingName); // Side-effect: is encodingName valid? 
-        } catch (Exception e) {
-          System.out.println("Invalid encoding '" + encodingName + "'");
-          return;
-        }
-      }
-      for (int i = firstFilePos; i < argv.length; i++) {
-        Lexer scanner = null;
-        try {
-          java.io.FileInputStream stream = new java.io.FileInputStream(argv[i]);
-          java.io.Reader reader = new java.io.InputStreamReader(stream, encodingName);
-          scanner = new Lexer(reader);
-          do {
-            System.out.println(scanner.next_token());
-          } while (!scanner.zzAtEOF);
-
-        }
-        catch (java.io.FileNotFoundException e) {
-          System.out.println("File not found : \""+argv[i]+"\"");
-        }
-        catch (java.io.IOException e) {
-          System.out.println("IO error scanning file \""+argv[i]+"\"");
-          System.out.println(e);
-        }
-        catch (Exception e) {
-          System.out.println("Unexpected exception:");
-          e.printStackTrace();
         }
       }
     }
