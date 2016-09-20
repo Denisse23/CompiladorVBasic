@@ -132,7 +132,6 @@ COMENTARIO = "'"[^\n]*
         {SUB}  			{if(revisionPalabraClave()){return new Symbol(sym.sub,0,0);}}
         {ABRIRPARENTESIS}  	{return new Symbol(sym.abrirparentesis,0,0);}
 	{CERRARPARENTESIS}  	{return new Symbol(sym.cerrarparentesis,0,0);}
-        {LINE}                  {if(revisionPalabraClave()){return new Symbol(sym.line,0,0);}}
         {WRITE}                 {if(revisionPalabraClave()){return new Symbol(sym.write,0,0);}}
         {READ}                  {if(revisionPalabraClave()){return new Symbol(sym.read,0,0);}}
         {CONSOLE}               {if(revisionPalabraClave()){return new Symbol(sym.console,0,0);}}

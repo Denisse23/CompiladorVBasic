@@ -1,3 +1,18 @@
-Function m() As String
-Return 5 + 5 
-End Function
+Dim j, k As Integer, l, o As Integer
+
+Type Employee
+EmpNumber As Integer ' Defaults to Public access.
+EmpOfficePhone As String
+EmpHomePhone As String ' Cannot be declared Private inside Type.
+k As String 'cnsnccksncnskcnknckscksncksndcknskcnkcnskncksc
+
+
+
+End Type
+Sub Main()
+If Not 5 > 6 Then
+End If
+
+For Index = 1  To 5
+Next
+End Sub

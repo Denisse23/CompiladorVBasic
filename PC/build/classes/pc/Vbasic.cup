@@ -14,7 +14,7 @@ parser code {:
      */
 :};
 
-terminal sub, abrirparentesis, cerrarparentesis,line, write, read, console, punto, type,  asignacion;
+terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, type,  asignacion;
 terminal function,  coma, begin, end,  then, to, next,  loop, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
@@ -29,12 +29,10 @@ non terminal INDENTACION;
 non terminal INDENTACION2;
 non terminal DECLARACION_VARIABLE;
 non terminal DECLARACION_VARIABLE2;
-non terminal ASIGNAR_TIPO_VARIABLE;
 non terminal BLOQUE_FUNCION;
 non terminal BLOQUE_LLAMADAS_FUNCIONES;
 non terminal BLOQUE_PROCEDIMIENTO;
 non terminal LISTA_PARAMENTROS;
-non terminal LISTA_PARAMENTROS2;
 non terminal CONTENIDO_SUB;
 non terminal CONTENIDO_FUNCTION;
 non terminal BLOQUE_RETURN;
@@ -44,18 +42,27 @@ non terminal TIPOS;
 non terminal VALORES;
 non terminal VALORES_CONDICIONALES;
 non terminal ARGUMENTOS;
-non terminal ARGUMENTOS2;
 non terminal EXP;
 non terminal EXP_CONDICIONALES;
-non terminal EXP_CONDICIONALES2;
 non terminal CONTENIDO_IF;
 non terminal CONTENIDO_IF_FUNCTION;
-non terminal ASIGNACIONES;
-non terminal ESTRUCTURA;
-non terminal LECTURA;
-non terminal ESCRITURA;
+non terminal BLOQUE_ASIGNACION;
 non terminal BLOQUE_FOR;
+non terminal BLOQUE_FOR_FUNCTION;
+non terminal CONTENIDO_FOR;
+non terminal CONTENIDO_FOR_FUNCTION;
 non terminal BLOQUE_WHILE;
+non terminal BLOQUE_WHILE_FUNCTION;
+non terminal CONTENIDO_WHILE;
+non terminal CONTENIDO_WHILE_FUNCTION;
+non terminal BLOQUE_ESTRUCTURA;
+non terminal CONTENIDO_ESTRUCTURA;
+non terminal DECLARACION_VARIABLE_ESTRUCTURA;
+non terminal BLOQUE_LECTURA;
+non terminal BLOQUE_ESCRITURA;
+non terminal BLOQUE_COMENTARIOS;
+
+
 
 
 precedence left asignacion;
@@ -71,34 +78,39 @@ PROGRAMA::=INDENTACION PROGRAMA
            |INDENTACION PROGRAMA2
            |BLOQUE_PROCEDIMIENTO INDENTACION2 PROGRAMA2
            |BLOQUE_FUNCION INDENTACION2 PROGRAMA2
-           |ESTRUCTURA INDENTACION2 PROGRAMA2
+           |BLOQUE_ESTRUCTURA INDENTACION2 PROGRAMA2
            |DECLARACION_VARIABLE INDENTACION2 PROGRAMA2
+           |BLOQUE_COMENTARIOS INDENTACION2 PROGRAMA2
            ;
 PROGRAMA2::=newline PROGRAMA
             |newline
             |
             ;
 
-CONTENIDO_SUB::=newline INDENTACION2 LECTURA INDENTACION2  CONTENIDO_SUB
+CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB
                |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_SUB
                |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_SUB
                |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_SUB
-               |newline INDENTACION2  ESCRITURA INDENTACION2 CONTENIDO_SUB
+               |newline INDENTACION2  BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_SUB
+               |newline INDENTACION2  BLOQUE_WHILE INDENTACION2 CONTENIDO_SUB
                |newline INDENTACION2
                |newline INDENTACION2 CONTENIDO_SUB
-               |newline INDENTACION2 ASIGNACIONES CONTENIDO_SUB
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_SUB
+               |BLOQUE_COMENTARIOS CONTENIDO_SUB
                ;
 
 
 CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 LECTURA INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 ESCRITURA INDENTACION2  CONTENIDO_FUNCTION
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
+               |newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FUNCTION
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
                |newline INDENTACION2
                |newline INDENTACION2 CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_RETURN  CONTENIDO_FUNCTION
-               |newline INDENTACION2 ASIGNACIONES CONTENIDO_FUNCTION
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FUNCTION
+               |BLOQUE_COMENTARIOS CONTENIDO_FUNCTION
                ;
 
 
@@ -114,52 +126,46 @@ INDENTACION::=espacio
               |tab
               ;
 
-DECLARACION_VARIABLE::=dim espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
+DECLARACION_VARIABLE::=dim espacio  DECLARACION_VARIABLE2 
                        ;
 
-DECLARACION_VARIABLE2::=coma espacio ASIGNAR_TIPO_VARIABLE DECLARACION_VARIABLE2
-                        |
-                        ;
-ASIGNAR_TIPO_VARIABLE::=identificador espacio as espacio TIPOS
-                       ;
+DECLARACION_VARIABLE2::=identificador espacio as espacio TIPOS coma espacio  DECLARACION_VARIABLE2
+                               |identificador coma espacio DECLARACION_VARIABLE2
+                               |identificador espacio as espacio TIPOS
+                               ;
 
 TIPOS::=tipovar
           |identificador
           ;
 
 BLOQUE_PROCEDIMIENTO::=sub espacio identificador abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio sub
-                |sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio sub
+                       |sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio sub
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
+LISTA_PARAMENTROS::=tipoparametro espacio identificador espacio as espacio TIPOS
+                    |tipoparametro espacio identificador espacio as espacio TIPOS coma espacio LISTA_PARAMENTROS
                     ;
 
-LISTA_PARAMENTROS2::=coma espacio tipoparametro espacio ASIGNAR_TIPO_VARIABLE LISTA_PARAMENTROS2
-                     |
-                     ;
-
-
-BLOQUE_FUNCION::=function espacio identificador abrirparentesis cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
-          |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
-          |function espacio identificador abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
-          |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
+BLOQUE_FUNCION::=function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
+                 |function espacio identificador abrirparentesis cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
+                 |function espacio identificador abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
+                 |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
           ;
 
-BLOQUE_LLAMADAS_FUNCIONES::=identificador abrirparentesis ARGUMENTOS cerrarparentesis
-                  |identificador abrirparentesis cerrarparentesis 
+BLOQUE_LLAMADAS_FUNCIONES::=identificador abrirparentesis cerrarparentesis
+                            |identificador abrirparentesis ARGUMENTOS cerrarparentesis
                   ;
-ARGUMENTOS::=EXP ARGUMENTOS2
+
+ARGUMENTOS::=EXP 
+             |EXP coma espacio ARGUMENTOS
              ;
-
-ARGUMENTOS2::=coma espacio EXP ARGUMENTOS2
-              |
-              ;
-
-      
 
 EXP::= VALORES espacio opsum espacio EXP
        |VALORES espacio opmult espacio EXP
        |VALORES INDENTACION2
+       |not espacio VALORES espacio opsum espacio EXP
+       |not espacio VALORES espacio opmult espacio EXP
+       |not espacio VALORES INDENTACION2
        ;
 
 
@@ -172,47 +178,50 @@ VALORES::=identificador
           |BLOQUE_LLAMADAS_FUNCIONES
           ;
 
-CONTENIDO_IF::=newline INDENTACION2 LECTURA INDENTACION2  CONTENIDO_IF
+CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF
                |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_IF
                |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_IF
-               |newline INDENTACION2 ESCRITURA INDENTACION2 CONTENIDO_IF
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF
+               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_IF
                |newline INDENTACION2
                |newline INDENTACION2 CONTENIDO_IF
-               |newline INDENTACION2 ASIGNACIONES CONTENIDO_IF
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_IF
+               |BLOQUE_COMENTARIOS CONTENIDO_IF
                ;
-CONTENIDO_IF_FUNCTION::=newline INDENTACION2 LECTURA INDENTACION2  CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_IF_FUNCTION
+CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF_FUNCTION
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_IF_FUNCTION
                |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 ESCRITURA INDENTACION2 CONTENIDO_IF_FUNCTION
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF_FUNCTION
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_IF_FUNCTION
                |newline INDENTACION2
                |newline INDENTACION2 CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 ASIGNACIONES CONTENIDO_IF_FUNCTION
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_IF_FUNCTION
                |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_IF_FUNCTION
+               |BLOQUE_COMENTARIOS CONTENIDO_IF_FUNCTION
                ;
 
 
-BLOQUE_IF::=If espacio EXP_CONDICIONALES espacio then INDENTACION2 CONTENIDO_IF end espacio If
-            |If espacio EXP_CONDICIONALES espacio then INDENTACION2 CONTENIDO_IF Else INDENTACION2 CONTENIDO_IF end espacio If
+BLOQUE_IF::=If espacio EXP_CONDICIONALES espacio then  CONTENIDO_IF end espacio If
+            |If espacio EXP_CONDICIONALES espacio then  CONTENIDO_IF Else INDENTACION2 CONTENIDO_IF end espacio If
             ;
 
 BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES espacio then  INDENTACION2 CONTENIDO_IF_FUNCTION end espacio If
             |If espacio EXP_CONDICIONALES espacio then INDENTACION2 CONTENIDO_IF_FUNCTION Else INDENTACION2 CONTENIDO_IF_FUNCTION end espacio If
             ;
 
-EXP_CONDICIONALES::=VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                    |VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                    |VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
+
+EXP_CONDICIONALES::=VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES
+                    |VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES 
+                    |not espacio VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES
+                    |VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES
+                    |not espacio VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES 
+                    |VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
+                    |VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
+                    |not espacio VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
+                    |VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
+                    |not espacio VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
                     ;
 
-EXP_CONDICIONALES2::=oplog espacio oprel espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                     |oplog VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                     |oplog not espacio VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                     |oplog VALORES_CONDICIONALES espacio asignacion espacio  not espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                     |oplog not espacio VALORES_CONDICIONALES espacio asignacion espacio  not espacio VALORES_CONDICIONALES EXP_CONDICIONALES2
-                     |
-                     ;
 
 VALORES_CONDICIONALES::=identificador
           |truefalse
@@ -222,10 +231,90 @@ VALORES_CONDICIONALES::=identificador
           |abrirparentesis EXP_CONDICIONALES cerrarparentesis
           ;
 
-ASIGNACIONES::=identificador espacio asignacion espacio EXP 
+BLOQUE_ASIGNACION::=identificador espacio asignacion espacio EXP 
                |identificador punto identificador espacio asignacion espacio EXP 
                ;
 
+BLOQUE_FOR::=For espacio identificador espacio asignacion espacio EXP to espacio EXP CONTENIDO_FOR next
+             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP  to espacio EXP CONTENIDO_FOR next
+             ;
+
+
+BLOQUE_FOR_FUNCTION::=For espacio identificador espacio asignacion espacio EXP  to espacio EXP  CONTENIDO_FOR_FUNCTION next
+             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP to espacio EXP CONTENIDO_FOR_FUNCTION next
+             ;
+
+CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR
+               |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_FOR
+               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FOR
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR
+               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_FOR
+               |newline INDENTACION2
+               |newline INDENTACION2 CONTENIDO_FOR
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FOR
+               |BLOQUE_COMENTARIOS CONTENIDO_FOR
+               ;
+CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2
+               |newline INDENTACION2 CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FOR_FUNCTION
+               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_FOR_FUNCTION
+               |BLOQUE_COMENTARIOS CONTENIDO_FOR_FUNCTION
+               ;
+
+BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE loop
+             ;
+
+
+BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE_FUNCTION loop
+             ;
+
+CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE
+               |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_WHILE
+               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2   CONTENIDO_WHILE
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_WHILE
+               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_WHILE
+               |newline INDENTACION2
+               |newline INDENTACION2 CONTENIDO_WHILE
+               |newline INDENTACION2 BLOQUE_ASIGNACION  CONTENIDO_WHILE
+               |BLOQUE_COMENTARIOS CONTENIDO_WHILE
+               ;
+CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2 CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2
+               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_WHILE_FUNCTION
+               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_WHILE_FUNCTION
+               |BLOQUE_COMENTARIOS CONTENIDO_WHILE_FUNCTION
+               ;
+
+
+BLOQUE_ESTRUCTURA::=type espacio identificador INDENTACION2 CONTENIDO_ESTRUCTURA end espacio type
+                    ;
+
+CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA INDENTACION2 CONTENIDO_ESTRUCTURA
+               |newline INDENTACION2
+               |newline INDENTACION2 CONTENIDO_ESTRUCTURA
+               |BLOQUE_COMENTARIOS CONTENIDO_ESTRUCTURA
+               ;
+DECLARACION_VARIABLE_ESTRUCTURA::=identificador espacio as espacio TIPOS
+                                 ;
+
+BLOQUE_LECTURA::=console punto read abrirparentesis cerrarparentesis
+                 ;
+
+BLOQUE_ESCRITURA::=console punto write abrirparentesis VALORES cerrarparentesis
+                 ;
+
+BLOQUE_COMENTARIOS::=comentario
+                     ;
 
 
 
