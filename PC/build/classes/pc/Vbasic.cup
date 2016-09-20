@@ -51,6 +51,7 @@ non terminal BLOQUE_FOR;
 non terminal BLOQUE_FOR_FUNCTION;
 non terminal CONTENIDO_FOR;
 non terminal CONTENIDO_FOR_FUNCTION;
+non terminal EXP_FOR;
 non terminal BLOQUE_WHILE;
 non terminal BLOQUE_WHILE_FUNCTION;
 non terminal CONTENIDO_WHILE;
@@ -122,8 +123,8 @@ INDENTACION2::=INDENTACION INDENTACION2
                |
                ;
 
-INDENTACION::=espacio 
-              |tab
+INDENTACION::=tab
+              |espacio
               ;
 
 DECLARACION_VARIABLE::=dim espacio  DECLARACION_VARIABLE2 
@@ -162,10 +163,18 @@ ARGUMENTOS::=EXP
 
 EXP::= VALORES espacio opsum espacio EXP
        |VALORES espacio opmult espacio EXP
-       |VALORES INDENTACION2
+       |VALORES
        |not espacio VALORES espacio opsum espacio EXP
        |not espacio VALORES espacio opmult espacio EXP
-       |not espacio VALORES INDENTACION2
+       |not espacio VALORES
+       ;
+
+EXP_FOR::=VALORES espacio opsum espacio EXP
+       |VALORES espacio opmult espacio EXP
+       |VALORES espacio
+       |not espacio VALORES espacio opsum espacio EXP
+       |not espacio VALORES espacio opmult espacio EXP
+       |not espacio VALORES espacio
        ;
 
 
@@ -235,13 +244,13 @@ BLOQUE_ASIGNACION::=identificador espacio asignacion espacio EXP
                |identificador punto identificador espacio asignacion espacio EXP 
                ;
 
-BLOQUE_FOR::=For espacio identificador espacio asignacion espacio EXP to espacio EXP CONTENIDO_FOR next
-             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP  to espacio EXP CONTENIDO_FOR next
+BLOQUE_FOR::=For espacio identificador espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR next
+             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP_FOR  to espacio EXP CONTENIDO_FOR next
              ;
 
 
-BLOQUE_FOR_FUNCTION::=For espacio identificador espacio asignacion espacio EXP  to espacio EXP  CONTENIDO_FOR_FUNCTION next
-             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP to espacio EXP CONTENIDO_FOR_FUNCTION next
+BLOQUE_FOR_FUNCTION::=For espacio identificador espacio asignacion espacio EXP_FOR  to espacio EXP  CONTENIDO_FOR_FUNCTION next
+             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR_FUNCTION next
              ;
 
 CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR
