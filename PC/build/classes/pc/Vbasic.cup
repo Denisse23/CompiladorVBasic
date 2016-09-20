@@ -163,17 +163,17 @@ ARGUMENTOS::=EXP
 
 EXP::= VALORES espacio opsum espacio EXP
        |VALORES espacio opmult espacio EXP
-       |VALORES
+       |VALORES INDENTACION2
        |not espacio VALORES espacio opsum espacio EXP
        |not espacio VALORES espacio opmult espacio EXP
-       |not espacio VALORES
+       |not espacio VALORES INDENTACION2
        ;
 
-EXP_FOR::=VALORES espacio opsum espacio EXP
-       |VALORES espacio opmult espacio EXP
+EXP_FOR::=VALORES espacio opsum espacio EXP_FOR
+       |VALORES espacio opmult espacio EXP_FOR
        |VALORES espacio
-       |not espacio VALORES espacio opsum espacio EXP
-       |not espacio VALORES espacio opmult espacio EXP
+       |not espacio VALORES espacio opsum espacio EXP_FOR
+       |not espacio VALORES espacio opmult espacio EXP_FOR
        |not espacio VALORES espacio
        ;
 
