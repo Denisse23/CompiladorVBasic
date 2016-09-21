@@ -2,6 +2,15 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/cmain.java</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/Vbasic.cup</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/JavaSymbol.java</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/Ventana.java</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/PC.java</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/Vbasic.flex</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/Lexer.java</file>
+            <file>file:/C:/Users/kingdomkaz/Documents/compiladores/CompiladorVBasic/PC/src/pc/parser.java</file>
+        </group>
     </open-files>
 </project-private>

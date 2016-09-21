@@ -1,17 +1,29 @@
 package pc;
 import java_cup.runtime.*;
-
+import java_cup.runtime.Symbol;
 
 parser code {:
-     /*
-     public void syntax_error(Symbol s){
- 	System.out.print(s);
-     }
-    
-     public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
-         System.out.print(s);
-     }
-     */
+     public static int errors = 0;
+
+public void report_error(String message, Object info) {
+    if (info instanceof String){
+	errors++; 
+      System.err.println(" Error #"+ errors + "==> " + info + " "+ message
+					);
+    }
+    else {
+    	StringBuffer m = new StringBuffer("Error ");
+    	if (info instanceof java_cup.runtime.Symbol) 
+     	   m.append( "("+info.toString()+")" );     
+    	m.append(" : "+message);   
+    	System.err.println(m);
+    }
+  }
+   
+  public void report_fatal_error(String message, Object info) {
+    report_error(message, info);
+    throw new RuntimeException("Fatal Syntax Error");
+  }
 :};
 
 terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, type,  asignacion;
@@ -71,8 +83,8 @@ precedence left opsum;
 precedence left opmult;
 precedence left not, oplog;
 
-INICIO::=PROGRAMA
-         |newline PROGRAMA
+INICIO::=PROGRAMA 
+         |newline PROGRAMA 
          ;
 
 PROGRAMA::=INDENTACION PROGRAMA
@@ -127,7 +139,8 @@ INDENTACION::=tab
               |espacio
               ;
 
-DECLARACION_VARIABLE::=dim espacio  DECLARACION_VARIABLE2 
+DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2
+                       |dim error {: parser.report_error("DE VARIABLE","ERROR EN DECLARACION"); :} DECLARACION_VARIABLE2
                        ;
 
 DECLARACION_VARIABLE2::=identificador espacio as espacio TIPOS coma espacio  DECLARACION_VARIABLE2
@@ -319,7 +332,7 @@ DECLARACION_VARIABLE_ESTRUCTURA::=identificador espacio as espacio TIPOS
 BLOQUE_LECTURA::=console punto read abrirparentesis cerrarparentesis
                  ;
 
-BLOQUE_ESCRITURA::=console punto write abrirparentesis VALORES cerrarparentesis
+BLOQUE_ESCRITURA::=console  punto write abrirparentesis VALORES cerrarparentesis
                  ;
 
 BLOQUE_COMENTARIOS::=comentario

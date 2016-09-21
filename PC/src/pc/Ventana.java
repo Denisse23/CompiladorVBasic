@@ -164,9 +164,9 @@ public class Ventana extends javax.swing.JFrame {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream ps = new PrintStream(baos);
             // IMPORTANT: Save the old System.out!
-            PrintStream old = System.out;
+            PrintStream old = System.err;
             // Tell Java to use your special stream
-            System.setOut(ps);
+            System.setErr(ps);
             // Print some output: goes to your special stream
             File archivo = new File("./temp.txt");
             BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
@@ -180,10 +180,12 @@ public class Ventana extends javax.swing.JFrame {
             }catch (Exception e){
                 System.out.println(e);
             }
+            
             txtaCodigo.setText(baos.toString());
-            System.out.flush();
-            System.setOut(old);
-            System.out.flush();
+            System.err.flush();
+            System.setErr(old);
+            System.err.flush();
+            txtaCodigo.append("\nAnalisis Finalizado, Gracias Diosito\n");
             }catch (Exception e){
                 System.out.println(e);
             }

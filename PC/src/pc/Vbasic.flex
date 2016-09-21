@@ -12,7 +12,8 @@ import java_cup.runtime.Symbol;
 %caseless
 %ignorecase
 %unicode
-
+%extends sym
+%debug
 SUB = Sub
 ABRIRPARENTESIS = "("
 CERRARPARENTESIS = ")"
@@ -59,6 +60,22 @@ COMENTARIO = "'"[^\n]*
 
 %{
      
+  StringBuffer string = new StringBuffer();
+  
+  private Symbol symbol(int type) {
+    return new JavaSymbol(type, yyline+1, yycolumn+1, yytext());
+  }
+
+  private Symbol symbol(int type, Object value) {
+    return new JavaSymbol(type, yyline+1, yycolumn+1, yytext(), value);
+  }
+
+  public String current_lexeme(){
+    int l = yyline+1;
+    int c = yycolumn+1;
+    return " line: "+l+" , column: "+c+" , lexema: '"+yytext()+"'";
+  }
+
     private String extraerCadenaReal() {
         String[] lista = yytext().split(" &_\n");
         String cadena = "";
@@ -129,51 +146,46 @@ COMENTARIO = "'"[^\n]*
 
 %%
 <YYINITIAL> {
-        {SUB}  			{if(revisionPalabraClave()){return new Symbol(sym.sub,0,0);}}
-        {ABRIRPARENTESIS}  	{return new Symbol(sym.abrirparentesis,0,0);}
-	{CERRARPARENTESIS}  	{return new Symbol(sym.cerrarparentesis,0,0);}
-        {WRITE}                 {if(revisionPalabraClave()){return new Symbol(sym.write,0,0);}}
-        {READ}                  {if(revisionPalabraClave()){return new Symbol(sym.read,0,0);}}
-        {CONSOLE}               {if(revisionPalabraClave()){return new Symbol(sym.console,0,0);}}
-        {PUNTO}                 {return new Symbol(sym.punto,0,0);}
-        {TYPE}                  {if(revisionPalabraClave()){return new Symbol(sym.type,0,0);}}
-        {FUNCTION}  		{if(revisionPalabraClave()){return new Symbol(sym.function,0,0);}}
-        {TIPOPARAMETRO} 	{if(revisionPalabraClave2()){return new Symbol(sym.tipoparametro,0,0, yytext());}}
-        {COMA}  		{return new Symbol(sym.coma,0,0);}
-	{RETURN}  		{if(revisionPalabraClave()){return new Symbol(sym.Return,0,0);}}
-	{BEGIN}			{if(revisionPalabraClave()){return new Symbol(sym.begin,0,0);}}
-	{END}			{if(revisionPalabraClave()){return new Symbol(sym.end,0,0);}}
-	{IF} 			{if(revisionPalabraClave()){return new Symbol(sym.If,0,0);}}
-        {THEN}			{if(revisionPalabraClave()){return new Symbol(sym.then,0,0);}}
-        {ELSE} 			{if(revisionPalabraClave()){return new Symbol(sym.Else,0,0);}}
-	{FOR} 			{if(revisionPalabraClave()){return new Symbol(sym.For,0,0);}}
-        {TO} 			{if(revisionPalabraClave()){return new Symbol(sym.to,0,0);}}
-        {NEXT} 			{if(revisionPalabraClave()){return new Symbol(sym.next,0,0);}}
-	{DO}			{if(revisionPalabraClave()){return new Symbol(sym.Do,0,0);}}
-	{WHILE} 		{if(revisionPalabraClave()){return new Symbol(sym.While,0,0);}}
-        {LOOP} 			{if(revisionPalabraClave()){return new Symbol(sym.loop,0,0);}}
-        {DIM}  			{if(revisionPalabraClave()){return new Symbol(sym.dim,0,0);}}
-        {AS}  			{if(revisionPalabraClave()){return new Symbol(sym.as,0,0);}}
-	{TIPOVAR}  		{if(revisionPalabraClave()){return new Symbol(sym.tipovar,0,0, yytext());}}
-        {TRUEFALSE}  		{if(revisionPalabraClave()){return new Symbol(sym.truefalse,0,0, yytext());}}
-	{NOT} 			{if(revisionPalabraClave()){return new Symbol(sym.not,0,0);}}
-	{OPLOG}  		{return new Symbol(sym.oplog,0,0, yytext());}
-	{OPREL} 		{return new Symbol(sym.oprel,0,0, yytext());}
-        {ASIGNACION}  		{return new Symbol(sym.asignacion,0,0);}
-        {OPMULT}  		{return new Symbol(sym.opmult,0,0, yytext());}
-	{OPSUM}	 		{return new Symbol(sym.opsum,0,0, yytext());}
-	{NUMERO}  		{return new Symbol(sym.numero,0,0, Integer.parseInt(yytext()));}
-	{IDENTIFICADOR} 	{return new Symbol(sym.identificador,0,0,yytext());}
-        {ESPACIO}               {return new Symbol(sym.espacio,0,0, yytext());}
-        {NEWLINE}               {return new Symbol(sym.newline,0,0, yytext());}
-        {TAB}                   {return new Symbol(sym.tab,0,0, yytext());}
-	{CADENA}		{return new Symbol(sym.cadena,0,0,extraerCadenaReal());}
-        {COMENTARIO}            {return new Symbol(sym.comentario,0,0,yytext().substring(1));}
-        .			{System.out.println("No se reconoce el token: "+yytext()+". Error->Linea: "+yyline+", columna: "+yycolumn);}
-        }
+        {SUB}  			{return symbol(sub);}
+        {ABRIRPARENTESIS}  	{return symbol(abrirparentesis);}
+	{CERRARPARENTESIS}  	{return symbol(cerrarparentesis);}
+        {WRITE}                 {return symbol(write);}
+        {READ}                  {return symbol(read);}
+        {CONSOLE}               {return symbol(console);}
+        {PUNTO}                 {return symbol(punto);}
+        {TYPE}                  {return symbol(type);}
+        {FUNCTION}  		{return symbol(function);}
+        {TIPOPARAMETRO} 	{return symbol(tipoparametro, yytext());}
+        {COMA}  		{return symbol(coma);}
+	{RETURN}  		{return symbol(Return);}
+	{BEGIN}			{return symbol(begin);}
+	{END}			{return symbol(end);}
+	{IF} 			{return symbol(If);}
+        {THEN}			{return symbol(then);}
+        {ELSE} 			{return symbol(Else);}
+	{FOR} 			{return symbol(For);}
+        {TO} 			{return symbol(to);}
+        {NEXT} 			{return symbol(next);}
+	{DO}			{return symbol(Do);}
+	{WHILE} 		{return symbol(While);}
+        {LOOP} 			{return symbol(loop);}
+        {DIM}  			{return symbol(dim);}
+        {AS}  			{return symbol(as);}
+	{TIPOVAR}  		{return symbol(tipovar, yytext());}
+        {TRUEFALSE}  		{return symbol(truefalse, yytext());}
+	{NOT} 			{return symbol(not);}
+	{OPLOG}  		{return symbol(oplog, yytext());}
+	{OPREL} 		{return symbol(oprel, yytext());}
+        {ASIGNACION}  		{return symbol(asignacion);}
+        {OPMULT}  		{return symbol(opmult, yytext());}
+	{OPSUM}	 		{return symbol(opsum, yytext());}
+	{NUMERO}  		{return symbol(numero, Integer.parseInt(yytext()));}
+	{IDENTIFICADOR} 	{return symbol(identificador,yytext());}
+        {ESPACIO}               {return symbol(espacio, yytext());}
+        {NEWLINE}               {return symbol(newline, yytext());}
+        {TAB}                   {return symbol(tab, yytext());}
+	{CADENA}		{return symbol(cadena,extraerCadenaReal());}
+        {COMENTARIO}            {return symbol(comentario,yytext().substring(1));}  
+      .			{ System.err.println("\nNo se reconoce el token: "+" Error-> "+current_lexeme()); }   
+}
 
-<<EOF>>                         { 
-                                          
-                                            return new Symbol(sym.EOF,0,0); 
-
-                                        }
