@@ -8,8 +8,7 @@ parser code {:
 public void report_error(String message, Object info) {
     if (info instanceof String){
 	errors++; 
-      System.err.println(" Error #"+ errors + "==> " + info + " "+ message
-					);
+      /*System.err.println( info + " "+ message);*/
     }
     else {
     	StringBuffer m = new StringBuffer("Error ");
@@ -94,6 +93,7 @@ PROGRAMA::=INDENTACION PROGRAMA
            |BLOQUE_ESTRUCTURA INDENTACION2 PROGRAMA2
            |DECLARACION_VARIABLE INDENTACION2 PROGRAMA2
            |BLOQUE_COMENTARIOS INDENTACION2 PROGRAMA2
+           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
 PROGRAMA2::=newline PROGRAMA
             |newline

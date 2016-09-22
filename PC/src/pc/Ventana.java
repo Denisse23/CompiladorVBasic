@@ -185,7 +185,7 @@ public class Ventana extends javax.swing.JFrame {
             System.err.flush();
             System.setErr(old);
             System.err.flush();
-            txtaCodigo.append("\nAnalisis Finalizado, Gracias Diosito\n");
+            txtaCodigo.append("\nAnalisis Finalizado, Gracias Diosito ✞\n");
             }catch (Exception e){
                 System.out.println(e);
             }

@@ -917,8 +917,8 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
             System.out.println("line: "+(yyline+1)+" "+"col: "+(yycolumn+1)+" "+"match: --"+zzToPrintable(yytext())+"--");
-            System.out.println("action [189] { System.err.println(\"\\nNo se reconoce el token: \"+yytext()+\" Error-> \"+current_lexeme()); }");
-            { System.err.println("\nNo se reconoce el token: "+yytext()+" Error-> "+current_lexeme());
+            System.out.println("action [189] { System.err.println(\"\\nNo se reconoce el token: \"+\" Error-> \"+current_lexeme()); }");
+            { System.err.println("\nNo se reconoce el token: "+" Error-> "+current_lexeme());
             }
           case 42: break;
           case 2: 
