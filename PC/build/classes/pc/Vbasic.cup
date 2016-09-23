@@ -21,8 +21,8 @@ public void report_error(String message, Object info) {
     }
   }
    
-  public void report_fatal_error(String message, Object info) {
-    report_error(message, info);
+  public void report_fatal_error() {
+    //report_error(message, info);
     throw new RuntimeException("Fatal Syntax Error");
   }
 
@@ -31,7 +31,7 @@ public void report_error(String message, Object info) {
 
 
 terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, type,  asignacion;
-terminal function,  coma, begin, end,  then, to, next,  loop, dim, as, not;
+terminal function,  coma, end,  then, to, next,  loop, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
 terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
@@ -79,9 +79,6 @@ non terminal declaracion_var_estructura DECLARACION_VARIABLE_ESTRUCTURA;
 non terminal BLOQUE_LECTURA;
 non terminal BLOQUE_ESCRITURA;
 non terminal declaracion_comentario BLOQUE_COMENTARIOS;
-non terminal prueba;
-non terminal prueba2;
-non terminal prueba3;
 
 
 
@@ -101,6 +98,7 @@ PROGRAMA::=INDENTACION PROGRAMA
            |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(be); :}
            |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; //for(int i=0;i<dv.size();i++){RESULT.addDeclaracion(dv.get(i));} :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addDeclaracion(bc);:}
+           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
 PROGRAMA2::=newline PROGRAMA:p {: RESULT = p;  :}
             |newline {:RESULT = new programa();:}
@@ -147,7 +145,6 @@ INDENTACION::=tab
               ;
 
 DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2:dv2 {: RESULT = new ArrayList(); RESULT=dv2;:}
-                       |dim error {: parser.report_error("DE VARIABLE","ERROR EN DECLARACION"); :} DECLARACION_VARIABLE2
                        ;
 
 DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio  DECLARACION_VARIABLE2:dv2 {:  RESULT=dv2; RESULT.add(new declaracion_var(new identificador(id), t));:}

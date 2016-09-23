@@ -1,8 +1,9 @@
+
+
 Sub m()
-j = 5 + 5
 End Sub
 
-Dim k As String
 
-Type e
-End Type
+Sub m()
+
+End Sub

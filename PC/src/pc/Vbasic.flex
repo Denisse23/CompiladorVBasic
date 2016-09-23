@@ -26,7 +26,6 @@ FUNCTION = Function
 TIPOPARAMETRO = ByVal|ByRef
 COMA = ","
 RETURN = Return
-BEGIN = Begin
 END = End
 IF = If
 THEN =  Then
@@ -157,7 +156,6 @@ COMENTARIO = "'"[^\n]*
         {TIPOPARAMETRO} 	{return symbol(tipoparametro, yytext());}
         {COMA}  		{return symbol(coma);}
 	{RETURN}  		{return symbol(Return);}
-	{BEGIN}			{return symbol(begin);}
 	{END}			{return symbol(end);}
 	{IF} 			{return symbol(If);}
         {THEN}			{return symbol(then);}
