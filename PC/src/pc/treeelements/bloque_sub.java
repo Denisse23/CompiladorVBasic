@@ -26,6 +26,10 @@ public class bloque_sub extends bloque {
        identificador = id;
     }
     
+    public void addDeclaracion(declaracion d){
+        declaraciones.add(d);
+    }
+    
     
     @Override
     public String toString(int nivel) {

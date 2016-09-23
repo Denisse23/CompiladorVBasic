@@ -53,26 +53,26 @@ non terminal ArrayList<parametro> LISTA_PARAMENTROS;
 non terminal ArrayList<declaracion> CONTENIDO_SUB;
 non terminal ArrayList<declaracion> CONTENIDO_FUNCTION;
 non terminal BLOQUE_RETURN;
-non terminal BLOQUE_IF;
-non terminal BLOQUE_IF_FUNCTION;
+non terminal declaracion_if BLOQUE_IF;
+non terminal declaracion_if BLOQUE_IF_FUNCTION;
 non terminal tipovar TIPOS;
 non terminal exp VALORES;
-non terminal VALORES_CONDICIONALES;
+non terminal condicion VALORES_CONDICIONALES;
 non terminal ARGUMENTOS;
 non terminal exp EXP;
-non terminal EXP_CONDICIONALES;
-non terminal CONTENIDO_IF;
-non terminal CONTENIDO_IF_FUNCTION;
+non terminal operacion_logica EXP_CONDICIONALES;
+non terminal ArrayList<declaracion> CONTENIDO_IF;
+non terminal ArrayList<declaracion> CONTENIDO_IF_FUNCTION;
 non terminal declaracion_asignacion BLOQUE_ASIGNACION;
 non terminal BLOQUE_FOR;
 non terminal BLOQUE_FOR_FUNCTION;
-non terminal CONTENIDO_FOR;
-non terminal CONTENIDO_FOR_FUNCTION;
-non terminal EXP_FOR;
+non terminal ArrayList<declaracion> CONTENIDO_FOR;
+non terminal ArrayList<declaracion> CONTENIDO_FOR_FUNCTION;
+non terminal exp EXP_FOR;
 non terminal BLOQUE_WHILE;
 non terminal BLOQUE_WHILE_FUNCTION;
-non terminal CONTENIDO_WHILE;
-non terminal CONTENIDO_WHILE_FUNCTION;
+non terminal ArrayList<declaracion> CONTENIDO_WHILE;
+non terminal ArrayList<declaracion> CONTENIDO_WHILE_FUNCTION;
 non terminal bloque_type BLOQUE_ESTRUCTURA;
 non terminal bloque_type CONTENIDO_ESTRUCTURA;
 non terminal declaracion_var_estructura DECLARACION_VARIABLE_ESTRUCTURA;
@@ -96,7 +96,7 @@ PROGRAMA::=INDENTACION PROGRAMA
            |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bp); :}
            |BLOQUE_FUNCION:bf INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bf); :}
            |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(be); :}
-           |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; //for(int i=0;i<dv.size();i++){RESULT.addDeclaracion(dv.get(i));} :}
+           |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; for(int i=0;i<dv.size();i++){RESULT.addDeclaracion(dv.get(i));} :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addDeclaracion(bc);:}
            |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
@@ -105,12 +105,12 @@ PROGRAMA2::=newline PROGRAMA:p {: RESULT = p;  :}
             | {:RESULT = new programa(); :}
             ;
 
-CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB
-               |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_SUB
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_SUB
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_SUB
-               |newline INDENTACION2  BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_SUB
-               |newline INDENTACION2  BLOQUE_WHILE INDENTACION2 CONTENIDO_SUB
+CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(bi); :}
+               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_SUB:cs {: RESULT = cs; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2  BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
+               |newline INDENTACION2  BLOQUE_WHILE INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
                |newline INDENTACION2  {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(ba); :}
@@ -118,17 +118,17 @@ CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB
                ;
 
 
-CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
+CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FUNCTION:cf {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(bi); :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
-               |newline INDENTACION2 CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_RETURN  CONTENIDO_FUNCTION
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FUNCTION
-               |BLOQUE_COMENTARIOS CONTENIDO_FUNCTION 
+               |newline INDENTACION2 CONTENIDO_FUNCTION:cf {:RESULT = cf;:}
+               |newline INDENTACION2 BLOQUE_RETURN  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(ba); :}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(bc); :}
                ;
 
 
@@ -148,8 +148,8 @@ DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2:dv2 {: RESULT = new Arr
                        ;
 
 DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio  DECLARACION_VARIABLE2:dv2 {:  RESULT=dv2; RESULT.add(new declaracion_var(new identificador(id), t));:}
-                               |identificador:id coma espacio DECLARACION_VARIABLE2:dv2 {: RESULT = dv2; //RESULT.add(new declaracion_var(new identificador(id), dv2.get(dv2.size()-1).tipo_t));:}
-                               |identificador:id espacio as espacio TIPOS:t {:System.out.println(3); RESULT = new ArrayList(); RESULT.add(new declaracion_var(new identificador(id), t));:}
+                               |identificador:id coma espacio DECLARACION_VARIABLE2:dv2 {: RESULT = dv2; RESULT.add(new declaracion_var(new identificador(id), dv2.get(dv2.size()-1).tipo));:}
+                               |identificador:id espacio as espacio TIPOS:t {: RESULT = new ArrayList(); RESULT.add(new declaracion_var(new identificador(id), t));:}
 
                                ;
 
@@ -187,12 +187,9 @@ EXP::=  EXP:v opsum:os espacio EXP:e {:RESULT = new exp(v,os, e);:}
 
 
 
-EXP_FOR::=VALORES espacio opsum espacio EXP_FOR
-       |VALORES espacio opmult espacio EXP_FOR
-       |VALORES espacio
-       |not espacio VALORES espacio opsum espacio EXP_FOR
-       |not espacio VALORES espacio opmult espacio EXP_FOR
-       |not espacio VALORES espacio
+EXP_FOR::=EXP_FOR:v opsum:os espacio EXP_FOR:e {:RESULT = new exp(v,os, e);:}
+       |EXP_FOR:v opmult:om espacio EXP_FOR:e {:RESULT = new exp(v,om, e);:}
+       |VALORES:v espacio {:RESULT = v;:}
        ;
 
 
@@ -205,57 +202,58 @@ VALORES::=identificador:id {: RESULT = new exp(new valores(new identificador(id)
           |BLOQUE_LLAMADAS_FUNCIONES
           ;
 
-CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_IF
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_IF
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF
-               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_IF
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_IF
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_IF
-               |BLOQUE_COMENTARIOS CONTENIDO_IF
+CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF:ci {:RESULT =ci; :}
+               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_IF:ci {:RESULT =ci; :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {: RESULT = ci; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF:ci {:RESULT =ci; :}
+               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_IF:ci {:RESULT =ci; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(ba);:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bc);:}
                ;
-CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_IF_FUNCTION
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_IF_FUNCTION
-               |BLOQUE_COMENTARIOS CONTENIDO_IF_FUNCTION
+CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {: RESULT = ci; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(ba);:}
+               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bc);:}
                ;
 
 
-BLOQUE_IF::=If espacio EXP_CONDICIONALES espacio then  CONTENIDO_IF end espacio If
-            |If espacio EXP_CONDICIONALES espacio then  CONTENIDO_IF Else INDENTACION2 CONTENIDO_IF end espacio If
+BLOQUE_IF::=If espacio EXP_CONDICIONALES:ec espacio then  CONTENIDO_IF:ci end espacio If {:RESULT = new declaracion_if(ec, ci);:}
+            |If espacio EXP_CONDICIONALES:ec espacio then  CONTENIDO_IF:ci Else INDENTACION2 CONTENIDO_IF:cie end espacio If {:RESULT = new declaracion_if(ec, ci, cie);:}
             ;
 
-BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES espacio then  INDENTACION2 CONTENIDO_IF_FUNCTION end espacio If
-            |If espacio EXP_CONDICIONALES espacio then INDENTACION2 CONTENIDO_IF_FUNCTION Else INDENTACION2 CONTENIDO_IF_FUNCTION end espacio If
+BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec espacio then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end espacio If {:RESULT = new declaracion_if(ec, ci);:}
+            |If espacio EXP_CONDICIONALES:ec espacio then INDENTACION2 CONTENIDO_IF_FUNCTION:ci Else INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {:RESULT = new declaracion_if(ec, ci, cie);:}
             ;
 
 
-EXP_CONDICIONALES::=VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES
-                    |VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES 
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES
-                    |VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES 
-                    |VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
-                    |VALORES_CONDICIONALES espacio asignacion espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
-                    |VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
-                    |not espacio VALORES_CONDICIONALES espacio oprel espacio not espacio VALORES_CONDICIONALES oplog EXP_CONDICIONALES
+EXP_CONDICIONALES::=VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
+                    |VALORES_CONDICIONALES:v1 espacio asignacion:a espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, "=", v2));:}
+                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
+                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
+                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2  {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
+                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec  {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
+                    |VALORES_CONDICIONALES:v1 espacio asignacion espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, "=", v2), ol, ec);:}
+                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
+                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol,ec);:}
+                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
                     ;
 
 
-VALORES_CONDICIONALES::=identificador
-          |truefalse
-          |numero
-          |cadena
-          |identificador punto identificador
-          |abrirparentesis EXP_CONDICIONALES cerrarparentesis
+VALORES_CONDICIONALES::=identificador:id  {: RESULT = new condicion(new valores_con(new identificador(id)));:}
+          |truefalse:tf  {: RESULT = new condicion(new valores_con(tf));:}
+          |numero:n  {: RESULT = new condicion(new valores_con(n));:}
+          |cadena:c  {: RESULT = new condicion(new valores_con(c));:}
+          |identificador:id punto identificador:id2  {: RESULT = new condicion(new valores_con(new identificador(id+"."+id2)));:}
+          |abrirparentesis EXP_CONDICIONALES:c cerrarparentesis  {: RESULT = new condicion(new valores_con(c));:}
+          |BLOQUE_LLAMADAS_FUNCIONES
           ;
 
 BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new declaracion_asignacion(new identificador(id), "=", e); :}
@@ -271,26 +269,26 @@ BLOQUE_FOR_FUNCTION::=For espacio identificador espacio asignacion espacio EXP_F
              |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR_FUNCTION next
              ;
 
-CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR
-               |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_FOR
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FOR
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR
-               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_FOR
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_FOR
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FOR
-               |BLOQUE_COMENTARIOS CONTENIDO_FOR
+CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_FOR:cf {:RESULT =cf; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf  {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_FOR:cf {:RESULT =cf; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_FOR:cf {:RESULT = cf;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(ba);:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bc);:}
                ;
-CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FOR_FUNCTION
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_FOR_FUNCTION
-               |BLOQUE_COMENTARIOS CONTENIDO_FOR_FUNCTION
+CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(ba);:}
+               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bc);:}
                ;
 
 BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE loop
@@ -300,26 +298,26 @@ BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO
 BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE_FUNCTION loop
              ;
 
-CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE
-               |newline INDENTACION2 BLOQUE_IF INDENTACION2  CONTENIDO_WHILE
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2   CONTENIDO_WHILE
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_WHILE
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_WHILE
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_WHILE
-               |newline INDENTACION2 BLOQUE_ASIGNACION  CONTENIDO_WHILE
-               |BLOQUE_COMENTARIOS CONTENIDO_WHILE
+CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {: RESULT = cw; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
+               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_WHILE:cw {:RESULT = cw;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(ba);:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bc);:}
                ;
-CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2 CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_WHILE_FUNCTION
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_WHILE_FUNCTION
-               |BLOQUE_COMENTARIOS CONTENIDO_WHILE_FUNCTION
+CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {: RESULT = cw; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw;:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(ba);:}
+               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bc);:}
                ;
 
 

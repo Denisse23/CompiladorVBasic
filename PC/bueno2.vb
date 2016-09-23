@@ -12,7 +12,7 @@ Function funcion(ByRef otrovalor As Double)
 
 End Function
 
-Function funcion1 ()
+Function funcion1()
 	Dim a As Double
 	Dim numero2 As Double
 	

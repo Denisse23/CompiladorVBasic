@@ -32,8 +32,9 @@ public class programa {
    
     public String toString() {
        String re="";
-       if(bloques.size()>0){
        re += "Programa\n\tbloques";
+       if(bloques.size()>0){
+       
        for(int i =0; i<bloques.size();i++){
            re +=  bloques.get(i).toString(1+1);
        }

@@ -39,7 +39,9 @@ public class bloque_function extends bloque {
        parametros = new ArrayList();
     }
     
-    
+    public void addDeclaracion(declaracion d){
+        declaraciones.add(d);
+    }
     @Override
     public String toString(int nivel) {
        String tabs = "";
