@@ -1,1 +1,8 @@
-Dim a as String 34
+Sub m()
+j = 5 + 5
+End Sub
+
+Dim k As String
+
+Type e
+End Type

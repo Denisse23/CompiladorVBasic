@@ -177,6 +177,12 @@ public class Ventana extends javax.swing.JFrame {
             try{
             parser p = new parser(scanner);
 			p.parse();
+                        try{
+
+            System.out.println(p.programaP);
+            }catch (Exception e){
+                System.out.println(e);
+            }
             }catch (Exception e){
                 System.out.println(e);
             }

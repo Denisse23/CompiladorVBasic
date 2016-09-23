@@ -58,6 +58,6 @@ public class JavaSymbol extends java_cup.runtime.Symbol {
 
   @Override
   public String toString() {   
-    return "line: "+line+" , column: "+column+ " , lexeme: '"+text+"'"+" , sym: "+getTokenName(sym)+(value == null ? ", no se esperaba: "+ text: (" , no se esperaba: '"+value+"'"));
+    return "line: "+line+" , column: "+column+ " , lexeme: '"+(getTokenName(sym)== "newline" ? "salto de linea": (text))+"'"+" , sym: "+getTokenName(sym)+(value == null ? ", no se esperaba: "+ text: (" , no se esperaba: '"+(getTokenName(sym)== "newline" ? "salto de linea": (value))+"'"));
   }
 }

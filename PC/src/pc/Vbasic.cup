@@ -1,6 +1,8 @@
 package pc;
 import java_cup.runtime.*;
 import java_cup.runtime.Symbol;
+import pc.treeelements.*;
+import java.util.ArrayList;
 
 parser code {:
      public static int errors = 0;
@@ -23,7 +25,10 @@ public void report_error(String message, Object info) {
     report_error(message, info);
     throw new RuntimeException("Fatal Syntax Error");
   }
+
+    public programa programaP;
 :};
+
 
 terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, type,  asignacion;
 terminal function,  coma, begin, end,  then, to, next,  loop, dim, as, not;
@@ -33,31 +38,32 @@ terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, 
 terminal String espacio, newline, tab, cadena, comentario;
 terminal Integer numero;
 
+
 non terminal INICIO;
-non terminal PROGRAMA;
-non terminal PROGRAMA2;
+non terminal programa PROGRAMA;
+non terminal programa PROGRAMA2;
 non terminal INDENTACION;
 non terminal INDENTACION2;
-non terminal DECLARACION_VARIABLE;
-non terminal DECLARACION_VARIABLE2;
-non terminal BLOQUE_FUNCION;
+non terminal ArrayList<declaracion_var> DECLARACION_VARIABLE;
+non terminal ArrayList<declaracion_var> DECLARACION_VARIABLE2;
+non terminal bloque_function BLOQUE_FUNCION;
 non terminal BLOQUE_LLAMADAS_FUNCIONES;
-non terminal BLOQUE_PROCEDIMIENTO;
-non terminal LISTA_PARAMENTROS;
-non terminal CONTENIDO_SUB;
-non terminal CONTENIDO_FUNCTION;
+non terminal bloque_sub BLOQUE_PROCEDIMIENTO;
+non terminal ArrayList<parametro> LISTA_PARAMENTROS;
+non terminal ArrayList<declaracion> CONTENIDO_SUB;
+non terminal ArrayList<declaracion> CONTENIDO_FUNCTION;
 non terminal BLOQUE_RETURN;
 non terminal BLOQUE_IF;
 non terminal BLOQUE_IF_FUNCTION;
-non terminal TIPOS;
-non terminal VALORES;
+non terminal tipovar TIPOS;
+non terminal exp VALORES;
 non terminal VALORES_CONDICIONALES;
 non terminal ARGUMENTOS;
-non terminal EXP;
+non terminal exp EXP;
 non terminal EXP_CONDICIONALES;
 non terminal CONTENIDO_IF;
 non terminal CONTENIDO_IF_FUNCTION;
-non terminal BLOQUE_ASIGNACION;
+non terminal declaracion_asignacion BLOQUE_ASIGNACION;
 non terminal BLOQUE_FOR;
 non terminal BLOQUE_FOR_FUNCTION;
 non terminal CONTENIDO_FOR;
@@ -67,13 +73,15 @@ non terminal BLOQUE_WHILE;
 non terminal BLOQUE_WHILE_FUNCTION;
 non terminal CONTENIDO_WHILE;
 non terminal CONTENIDO_WHILE_FUNCTION;
-non terminal BLOQUE_ESTRUCTURA;
-non terminal CONTENIDO_ESTRUCTURA;
-non terminal DECLARACION_VARIABLE_ESTRUCTURA;
+non terminal bloque_type BLOQUE_ESTRUCTURA;
+non terminal bloque_type CONTENIDO_ESTRUCTURA;
+non terminal declaracion_var_estructura DECLARACION_VARIABLE_ESTRUCTURA;
 non terminal BLOQUE_LECTURA;
 non terminal BLOQUE_ESCRITURA;
-non terminal BLOQUE_COMENTARIOS;
-
+non terminal declaracion_comentario BLOQUE_COMENTARIOS;
+non terminal prueba;
+non terminal prueba2;
+non terminal prueba3;
 
 
 
@@ -82,22 +90,21 @@ precedence left opsum;
 precedence left opmult;
 precedence left not, oplog;
 
-INICIO::=PROGRAMA 
-         |newline PROGRAMA 
+INICIO::=PROGRAMA:p {:programaP = p;:}
+         |newline PROGRAMA:p {:programaP = p;:}
          ;
 
 PROGRAMA::=INDENTACION PROGRAMA
            |INDENTACION PROGRAMA2
-           |BLOQUE_PROCEDIMIENTO INDENTACION2 PROGRAMA2
-           |BLOQUE_FUNCION INDENTACION2 PROGRAMA2
-           |BLOQUE_ESTRUCTURA INDENTACION2 PROGRAMA2
-           |DECLARACION_VARIABLE INDENTACION2 PROGRAMA2
-           |BLOQUE_COMENTARIOS INDENTACION2 PROGRAMA2
-           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
+           |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bp); :}
+           |BLOQUE_FUNCION:bf INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bf); :}
+           |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(be); :}
+           |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; //for(int i=0;i<dv.size();i++){RESULT.addDeclaracion(dv.get(i));} :}
+           |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addDeclaracion(bc);:}
            ;
-PROGRAMA2::=newline PROGRAMA
-            |newline
-            |
+PROGRAMA2::=newline PROGRAMA:p {: RESULT = p;  :}
+            |newline {:RESULT = new programa();:}
+            | {:RESULT = new programa(); :}
             ;
 
 CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB
@@ -106,10 +113,10 @@ CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB
                |newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CONTENIDO_SUB
                |newline INDENTACION2  BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_SUB
                |newline INDENTACION2  BLOQUE_WHILE INDENTACION2 CONTENIDO_SUB
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_SUB
-               |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_SUB
-               |BLOQUE_COMENTARIOS CONTENIDO_SUB
+               |newline INDENTACION2  {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(ba); :}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(bc); :}
                ;
 
 
@@ -119,11 +126,11 @@ CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE INDENTACION2  CON
                |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_IF_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2  CONTENIDO_FUNCTION
-               |newline INDENTACION2
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_RETURN  CONTENIDO_FUNCTION
                |newline INDENTACION2 BLOQUE_ASIGNACION CONTENIDO_FUNCTION
-               |BLOQUE_COMENTARIOS CONTENIDO_FUNCTION
+               |BLOQUE_COMENTARIOS CONTENIDO_FUNCTION 
                ;
 
 
@@ -139,31 +146,32 @@ INDENTACION::=tab
               |espacio
               ;
 
-DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2
+DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2:dv2 {: RESULT = new ArrayList(); RESULT=dv2;:}
                        |dim error {: parser.report_error("DE VARIABLE","ERROR EN DECLARACION"); :} DECLARACION_VARIABLE2
                        ;
 
-DECLARACION_VARIABLE2::=identificador espacio as espacio TIPOS coma espacio  DECLARACION_VARIABLE2
-                               |identificador coma espacio DECLARACION_VARIABLE2
-                               |identificador espacio as espacio TIPOS
+DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio  DECLARACION_VARIABLE2:dv2 {:  RESULT=dv2; RESULT.add(new declaracion_var(new identificador(id), t));:}
+                               |identificador:id coma espacio DECLARACION_VARIABLE2:dv2 {: RESULT = dv2; //RESULT.add(new declaracion_var(new identificador(id), dv2.get(dv2.size()-1).tipo_t));:}
+                               |identificador:id espacio as espacio TIPOS:t {:System.out.println(3); RESULT = new ArrayList(); RESULT.add(new declaracion_var(new identificador(id), t));:}
+
                                ;
 
-TIPOS::=tipovar
-          |identificador
+TIPOS::=tipovar:tv {:RESULT = new tipovar(tv);:}
+          |identificador:id {:RESULT = new tipovar(id);:}
           ;
 
-BLOQUE_PROCEDIMIENTO::=sub espacio identificador abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio sub
-                       |sub espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio sub
+BLOQUE_PROCEDIMIENTO::=sub espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new bloque_sub(new identificador(id), cs); :}
+                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new bloque_sub(new identificador(id), lp, cs); :}
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro espacio identificador espacio as espacio TIPOS
-                    |tipoparametro espacio identificador espacio as espacio TIPOS coma espacio LISTA_PARAMENTROS
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {:RESULT = new ArrayList(); RESULT.add(new parametro(tp, new identificador(id), t));:}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new parametro(tp, new identificador(id), t));:}
                     ;
 
-BLOQUE_FUNCION::=function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
-                 |function espacio identificador abrirparentesis cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function
-                 |function espacio identificador abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
-                 |function espacio identificador abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function
+BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new bloque_function(new identificador(id),lp, t, cf); :}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new bloque_function(new identificador(id), t, cf); :}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function {:RESULT = new bloque_function(new identificador(id), cs); :}
+                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function {:RESULT = new bloque_function(new identificador(id),lp, cs); :}
           ;
 
 BLOQUE_LLAMADAS_FUNCIONES::=identificador abrirparentesis cerrarparentesis
@@ -174,13 +182,13 @@ ARGUMENTOS::=EXP
              |EXP coma espacio ARGUMENTOS
              ;
 
-EXP::= VALORES espacio opsum espacio EXP
-       |VALORES espacio opmult espacio EXP
-       |VALORES INDENTACION2
-       |not espacio VALORES espacio opsum espacio EXP
-       |not espacio VALORES espacio opmult espacio EXP
-       |not espacio VALORES INDENTACION2
+
+EXP::=  EXP:v opsum:os espacio EXP:e {:RESULT = new exp(v,os, e);:}
+       |EXP:v opmult:om espacio EXP:e {:RESULT = new exp(v,om, e);:}
+       |VALORES:v INDENTACION2 {:RESULT= v;:}
        ;
+
+
 
 EXP_FOR::=VALORES espacio opsum espacio EXP_FOR
        |VALORES espacio opmult espacio EXP_FOR
@@ -191,12 +199,12 @@ EXP_FOR::=VALORES espacio opsum espacio EXP_FOR
        ;
 
 
-VALORES::=identificador
-          |truefalse
-          |numero
-          |cadena
-          |identificador punto identificador
-          |abrirparentesis EXP cerrarparentesis
+VALORES::=identificador:id {: RESULT = new exp(new valores(new identificador(id)));:}
+          |truefalse:tf {: RESULT = new exp( new valores(tf));:}
+          |numero:n {: RESULT = new exp(new valores(n));:}
+          |cadena:c {: RESULT = new exp (new valores(c));:}
+          |identificador:id punto identificador:id2 {: RESULT = new exp (new valores(new identificador(id+"."+id2)));:}
+          |abrirparentesis EXP:e cerrarparentesis {: RESULT = new exp (new valores(new exp(e)));:}
           |BLOQUE_LLAMADAS_FUNCIONES
           ;
 
@@ -253,8 +261,8 @@ VALORES_CONDICIONALES::=identificador
           |abrirparentesis EXP_CONDICIONALES cerrarparentesis
           ;
 
-BLOQUE_ASIGNACION::=identificador espacio asignacion espacio EXP 
-               |identificador punto identificador espacio asignacion espacio EXP 
+BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new declaracion_asignacion(new identificador(id), "=", e); :}
+               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {:RESULT = new declaracion_asignacion(new identificador(id+"."+id2), "=", e); :}
                ;
 
 BLOQUE_FOR::=For espacio identificador espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR next
@@ -318,15 +326,15 @@ CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CON
                ;
 
 
-BLOQUE_ESTRUCTURA::=type espacio identificador INDENTACION2 CONTENIDO_ESTRUCTURA end espacio type
+BLOQUE_ESTRUCTURA::=type espacio identificador:id INDENTACION2 CONTENIDO_ESTRUCTURA:ce end espacio type {:RESULT = ce; RESULT.setIdentificador(new identificador(id)); :}
                     ;
 
-CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA INDENTACION2 CONTENIDO_ESTRUCTURA
-               |newline INDENTACION2
-               |newline INDENTACION2 CONTENIDO_ESTRUCTURA
-               |BLOQUE_COMENTARIOS CONTENIDO_ESTRUCTURA
+CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.addDeclaracionVar(dve);:}
+               |newline INDENTACION2 {:RESULT = new bloque_type();:}
+               |newline INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce;:} 
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.addDeclaracion(bc);:}
                ;
-DECLARACION_VARIABLE_ESTRUCTURA::=identificador espacio as espacio TIPOS
+DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:RESULT = new declaracion_var_estructura(new identificador(id), t);:}
                                  ;
 
 BLOQUE_LECTURA::=console punto read abrirparentesis cerrarparentesis
@@ -335,7 +343,7 @@ BLOQUE_LECTURA::=console punto read abrirparentesis cerrarparentesis
 BLOQUE_ESCRITURA::=console  punto write abrirparentesis VALORES cerrarparentesis
                  ;
 
-BLOQUE_COMENTARIOS::=comentario
+BLOQUE_COMENTARIOS::=comentario:c {:RESULT = new declaracion_comentario(c);:}
                      ;
 
 

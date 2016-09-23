@@ -13,7 +13,6 @@ import java_cup.runtime.Symbol;
 %ignorecase
 %unicode
 %extends sym
-%debug
 SUB = Sub
 ABRIRPARENTESIS = "("
 CERRARPARENTESIS = ")"
