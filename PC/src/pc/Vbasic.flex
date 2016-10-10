@@ -176,7 +176,7 @@ COMENTARIO = "'"[^\n]*
         {ASIGNACION}  		{return symbol(asignacion);}
         {OPMULT}  		{return symbol(opmult, yytext());}
 	{OPSUM}	 		{return symbol(opsum, yytext());}
-	{NUMERO}  		{return symbol(numero, Integer.parseInt(yytext()));}
+	{NUMERO}  		{return symbol(numero, yytext());}
 	{IDENTIFICADOR} 	{return symbol(identificador,yytext());}
         {ESPACIO}               {return symbol(espacio, yytext());}
         {NEWLINE}               {return symbol(newline, yytext());}

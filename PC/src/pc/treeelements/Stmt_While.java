@@ -11,35 +11,35 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author Denisse
  */
-public class Exp extends Node {
+public class Stmt_While extends Node{
     
-    public Exp(String v) {
+    public Stmt_While(String v) {
         super(v);
     }
     
-    public Node getLeft(){
-         try{
+    public Node getCondition(){
+        try{
             return hijos.get(0);
         }catch(Exception e){
             return null;
         }
     }
-    
-    public Node getRight(){
+    public Node getBody(){
         try{
             return hijos.get(1);
         }catch(Exception e){
             return null;
         }
     }
+    
+    
     @Override
     public void toNode(DefaultMutableTreeNode dmtn){
             DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
             dmtn.add(nodo);
-            if(!isLeaf()){
-                getLeft().toNode(nodo);
-                getRight().toNode(nodo);
-            }
+            getCondition().toNode(nodo);
+            if(!getBody().isLeaf())
+                getBody().toNode(nodo);
         
    }
     

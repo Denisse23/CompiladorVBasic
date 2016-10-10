@@ -6,6 +6,8 @@
 package pc;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import pc.treeelements.*;
 /**
  *
  * @author Denisse
@@ -30,8 +32,8 @@ public class cmain {
         }
              Ventana vent = new Ventana();
             vent.setVisible(true);
+            
         }
         
-       
         
 }

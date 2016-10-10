@@ -932,7 +932,7 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
             }
           case 50: break;
           case 11: 
-            { return symbol(numero, Integer.parseInt(yytext()));
+            { return symbol(numero, yytext());
             }
           case 51: break;
           case 12: 

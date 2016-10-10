@@ -13,6 +13,7 @@ public class JavaSymbol extends java_cup.runtime.Symbol {
   private int line;
   private int column;
   private String text;
+ 
 
   public JavaSymbol(int type, int line, int column, String text) {
     this(type, line, column, -1, -1, text, null);

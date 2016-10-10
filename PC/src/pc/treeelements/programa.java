@@ -5,46 +5,29 @@
  */
 package pc.treeelements;
 
-import java.util.ArrayList;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
  * @author Denisse
  */
-public class programa {
-    public ArrayList<bloque> bloques;
-    public ArrayList<declaracion> declaraciones;
+public class Programa extends Node {
     
-    public programa(){
-        bloques = new ArrayList();
-        declaraciones = new ArrayList();
-        
+    public Programa(String v) {
+        super(v);
     }
     
-    public void addBloque(bloque b){
-        bloques.add(b);
-    }
-    
-    public void addDeclaracion(declaracion d){
-        declaraciones.add(d);
-    }
-    
+
    
-    public String toString() {
-       String re="";
-       re += "Programa\n\tbloques";
-       if(bloques.size()>0){
-       
-       for(int i =0; i<bloques.size();i++){
-           re +=  bloques.get(i).toString(1+1);
-       }
-       }
-       if(declaraciones.size()>0){
-       re += "\n\tdeclaraciones";
-       for(int i =0; i<declaraciones.size();i++){
-           re +=  declaraciones.get(i).toString(1+1);
-       }
-       }
-       return re;
-    }
+    public DefaultMutableTreeNode toNodeP(){
+        DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
+        if(!isLeaf()){
+            
+            for(int i=hijos.size()-1;i>=0;i--)
+                hijos.get(i).toNode(nodo);
+        }
+        
+        return nodo;
+   }
+    
 }

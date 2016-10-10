@@ -11,13 +11,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author Denisse
  */
-public class Exp extends Node {
+public class Stmt_Parametro extends Node{
     
-    public Exp(String v) {
+    public Stmt_Parametro(String v) {
         super(v);
     }
     
-    public Node getLeft(){
+    public Node getTypeParameter(){
          try{
             return hijos.get(0);
         }catch(Exception e){
@@ -25,9 +25,17 @@ public class Exp extends Node {
         }
     }
     
-    public Node getRight(){
-        try{
+    public Node getIdentificador(){
+         try{
             return hijos.get(1);
+        }catch(Exception e){
+            return null;
+        }
+    }
+    
+    public Node getTipo(){
+        try{
+            return hijos.get(2);
         }catch(Exception e){
             return null;
         }
@@ -36,10 +44,9 @@ public class Exp extends Node {
     public void toNode(DefaultMutableTreeNode dmtn){
             DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
             dmtn.add(nodo);
-            if(!isLeaf()){
-                getLeft().toNode(nodo);
-                getRight().toNode(nodo);
-            }
+            getTypeParameter().toNode(nodo);
+            getIdentificador().toNode(nodo);
+            getTipo().toNode(nodo);
         
    }
     

@@ -26,7 +26,8 @@ public void report_error(String message, Object info) {
     throw new RuntimeException("Fatal Syntax Error");
   }
 
-    public programa programaP;
+    public Programa programaT;
+
 :};
 
 
@@ -35,105 +36,106 @@ terminal function,  coma, end,  then, to, next,  loop, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
 terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
-terminal String espacio, newline, tab, cadena, comentario;
-terminal Integer numero;
+terminal String espacio, newline, tab, cadena, comentario, numero;
 
 
-non terminal INICIO;
-non terminal programa PROGRAMA;
-non terminal programa PROGRAMA2;
+non terminal Programa INICIO;
+non terminal Programa PROGRAMA;
+non terminal Programa PROGRAMA2;
 non terminal INDENTACION;
 non terminal INDENTACION2;
-non terminal ArrayList<declaracion_var> DECLARACION_VARIABLE;
-non terminal ArrayList<declaracion_var> DECLARACION_VARIABLE2;
-non terminal bloque_function BLOQUE_FUNCION;
-non terminal BLOQUE_LLAMADAS_FUNCIONES;
-non terminal bloque_sub BLOQUE_PROCEDIMIENTO;
-non terminal ArrayList<parametro> LISTA_PARAMENTROS;
-non terminal ArrayList<declaracion> CONTENIDO_SUB;
-non terminal ArrayList<declaracion> CONTENIDO_FUNCTION;
-non terminal BLOQUE_RETURN;
-non terminal declaracion_if BLOQUE_IF;
-non terminal declaracion_if BLOQUE_IF_FUNCTION;
-non terminal tipovar TIPOS;
-non terminal exp VALORES;
-non terminal condicion VALORES_CONDICIONALES;
-non terminal ARGUMENTOS;
-non terminal exp EXP;
-non terminal operacion_logica EXP_CONDICIONALES;
-non terminal ArrayList<declaracion> CONTENIDO_IF;
-non terminal ArrayList<declaracion> CONTENIDO_IF_FUNCTION;
-non terminal declaracion_asignacion BLOQUE_ASIGNACION;
-non terminal BLOQUE_FOR;
-non terminal BLOQUE_FOR_FUNCTION;
-non terminal ArrayList<declaracion> CONTENIDO_FOR;
-non terminal ArrayList<declaracion> CONTENIDO_FOR_FUNCTION;
-non terminal exp EXP_FOR;
-non terminal BLOQUE_WHILE;
-non terminal BLOQUE_WHILE_FUNCTION;
-non terminal ArrayList<declaracion> CONTENIDO_WHILE;
-non terminal ArrayList<declaracion> CONTENIDO_WHILE_FUNCTION;
-non terminal bloque_type BLOQUE_ESTRUCTURA;
-non terminal bloque_type CONTENIDO_ESTRUCTURA;
-non terminal declaracion_var_estructura DECLARACION_VARIABLE_ESTRUCTURA;
-non terminal BLOQUE_LECTURA;
-non terminal BLOQUE_ESCRITURA;
-non terminal declaracion_comentario BLOQUE_COMENTARIOS;
+non terminal ArrayList<Node> DECLARACION_VARIABLE;
+non terminal ArrayList<Node> DECLARACION_VARIABLE2;
+non terminal Stmt_Funcion BLOQUE_FUNCION;
+non terminal Stmt_Llamada_Funcion BLOQUE_LLAMADAS_FUNCIONES;
+non terminal Stmt_Procedimiento BLOQUE_PROCEDIMIENTO;
+non terminal ArrayList<Node> LISTA_PARAMENTROS;
+non terminal ArrayList<Node> CONTENIDO_SUB;
+non terminal ArrayList<Node> CONTENIDO_FUNCTION;
+non terminal Stmt_Return BLOQUE_RETURN;
+non terminal Stmt_If BLOQUE_IF;
+non terminal Stmt_If BLOQUE_IF_FUNCTION;
+non terminal Node TIPOS;
+non terminal Exp VALORES;
+non terminal ArrayList<Node> ARGUMENTOS;
+non terminal Exp EXP;
+non terminal Condition EXP_CONDICIONALES;
+non terminal ArrayList<Node> CONTENIDO_IF;
+non terminal ArrayList<Node> CONTENIDO_IF_FUNCTION;
+non terminal Stmt_Asignacion BLOQUE_ASIGNACION;
+non terminal Stmt_For BLOQUE_FOR;
+non terminal Stmt_For BLOQUE_FOR_FUNCTION;
+non terminal Stmt_Asignacion_For BLOQUE_ASIGNACION_FOR;
+non terminal ArrayList<Node> CONTENIDO_FOR;
+non terminal ArrayList<Node> CONTENIDO_FOR_FUNCTION;
+non terminal Stmt_While BLOQUE_WHILE;
+non terminal Stmt_While BLOQUE_WHILE_FUNCTION;
+non terminal ArrayList<Node> CONTENIDO_WHILE;
+non terminal ArrayList<Node> CONTENIDO_WHILE_FUNCTION;
+non terminal Stmt_Type BLOQUE_ESTRUCTURA;
+non terminal ArrayList<Node> CONTENIDO_ESTRUCTURA;
+non terminal Stmt_Variable DECLARACION_VARIABLE_ESTRUCTURA;
+non terminal Stmt_Lectura BLOQUE_LECTURA;
+non terminal Stmt_Escritura BLOQUE_ESCRITURA;
+non terminal Stmt_Comentario BLOQUE_COMENTARIOS;
 
 
 
-precedence left asignacion;
 precedence left opsum;
+precedence left espacio;
 precedence left opmult;
+
 precedence left not, oplog;
 
-INICIO::=PROGRAMA:p {:programaP = p;:}
-         |newline PROGRAMA:p {:programaP = p;:}
+INICIO::=PROGRAMA:p {:programaT = p;:}
+         |newline PROGRAMA:p {:RESULT = p; :}
          ;
 
-PROGRAMA::=INDENTACION PROGRAMA
-           |INDENTACION PROGRAMA2
-           |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bp); :}
-           |BLOQUE_FUNCION:bf INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(bf); :}
-           |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; RESULT.addBloque(be); :}
-           |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: RESULT = p2; for(int i=0;i<dv.size();i++){RESULT.addDeclaracion(dv.get(i));} :}
-           |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addDeclaracion(bc);:}
+PROGRAMA::=INDENTACION PROGRAMA:p {:RESULT = p;:}
+           |INDENTACION PROGRAMA2:p2 {:RESULT = p2;:}
+           |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {:RESULT=p2; RESULT.addNode(bp);:}
+           |BLOQUE_FUNCION:bf INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addNode(bf);:}
+           |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addNode(be);:}
+           |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addListNode(dv); :}
+           |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {:RESULT = p2; RESULT.addNode(bc);:}
            |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
-PROGRAMA2::=newline PROGRAMA:p {: RESULT = p;  :}
-            |newline {:RESULT = new programa();:}
-            | {:RESULT = new programa(); :}
+PROGRAMA2::=newline PROGRAMA:p {:RESULT = p;:}
+            |newline {:RESULT = new Programa("Programa");:}
+            | {:RESULT = new Programa("Programa");:}
             ;
 
-CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; :}
-               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(bi); :}
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_SUB:cs {:RESULT =cs; :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_SUB:cs {: RESULT = cs; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2  BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
-               |newline INDENTACION2  BLOQUE_WHILE INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
-               |newline INDENTACION2  {:RESULT = new ArrayList();:}
-               |newline INDENTACION2 CONTENIDO_SUB:cs {:RESULT =cs; :}
-               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(ba); :}
-               |BLOQUE_COMENTARIOS:bc CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(bc); :}
-               ;
-
-
-CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FUNCTION:cf {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(bi); :}
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
+CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_SUB:cs  {:RESULT = cs; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_SUB:cs {:RESULT = cs; RESULT.add(bi); :}
+               |newline INDENTACION2 BLOQUE_FOR:bf INDENTACION2  CONTENIDO_SUB:cs {:RESULT = cs; RESULT.add(bf); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_SUB:cs  {:RESULT = cs; RESULT.addAll(dv); :}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_SUB:cs {:RESULT = cs; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_WHILE:bw INDENTACION2 CONTENIDO_SUB:cs {:RESULT = cs; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
-               |newline INDENTACION2 CONTENIDO_FUNCTION:cf {:RESULT = cf;:}
-               |newline INDENTACION2 BLOQUE_RETURN  CONTENIDO_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(ba); :}
-               |BLOQUE_COMENTARIOS:bc CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(bc); :}
+               |newline INDENTACION2 CONTENIDO_SUB:cs {:RESULT = cs; :}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(ba);:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_SUB:cs {:RESULT = cs; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_SUB:cs {:RESULT =cs; RESULT.add(bllf);:}
+               ;
+
+
+CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FUNCTION:cf  {:RESULT = cf; RESULT.addAll(dv); :}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION:bf INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(bf); :}
+               |newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(bi); :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION:bw INDENTACION2  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(bw); :}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_FUNCTION:cf {:RESULT = cf; :}
+               |newline INDENTACION2 BLOQUE_RETURN:br  CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(br);:}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(ba);:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FUNCTION:cf {:RESULT = cf; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FUNCTION:cf {:RESULT =cf; RESULT.add(bllf);:}
                ;
 
 
 
-BLOQUE_RETURN::= Return espacio EXP 
+BLOQUE_RETURN::= Return espacio EXP:e {:RESULT = new Stmt_Return("return"); RESULT.addNode(e);:}
          ; 
 
 INDENTACION2::=INDENTACION INDENTACION2
@@ -144,201 +146,192 @@ INDENTACION::=tab
               |espacio
               ;
 
-DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2:dv2 {: RESULT = new ArrayList(); RESULT=dv2;:}
+DECLARACION_VARIABLE::=dim espacio DECLARACION_VARIABLE2:dv2 {:RESULT = dv2;:}
                        ;
 
-DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio  DECLARACION_VARIABLE2:dv2 {:  RESULT=dv2; RESULT.add(new declaracion_var(new identificador(id), t));:}
-                               |identificador:id coma espacio DECLARACION_VARIABLE2:dv2 {: RESULT = dv2; RESULT.add(new declaracion_var(new identificador(id), dv2.get(dv2.size()-1).tipo));:}
-                               |identificador:id espacio as espacio TIPOS:t {: RESULT = new ArrayList(); RESULT.add(new declaracion_var(new identificador(id), t));:}
+DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio  DECLARACION_VARIABLE2:dv2  {:RESULT = dv2; RESULT.add(new Stmt_Variable("var")); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t); :}
+                               |identificador:id coma espacio DECLARACION_VARIABLE2:dv2 {:RESULT = dv2; RESULT.add(new Stmt_Variable("var")); RESULT.get(RESULT.size()-1).addNode(new Node(id)); Stmt_Variable temp = (Stmt_Variable)RESULT.get(RESULT.size()-2); RESULT.get(RESULT.size()-1).addNode(temp.getTipo()); :}
+                               |identificador:id espacio as:as espacio TIPOS:t  {:RESULT = new ArrayList(); RESULT.add(new Stmt_Variable("var")); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t);:}
 
                                ;
 
-TIPOS::=tipovar:tv {:RESULT = new tipovar(tv);:}
-          |identificador:id {:RESULT = new tipovar(id);:}
+TIPOS::=tipovar:tv {:RESULT = new Node(tv);:}
+          |identificador:id  {:RESULT = new Node(id);:}
           ;
 
-BLOQUE_PROCEDIMIENTO::=sub espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new bloque_sub(new identificador(id), cs); :}
-                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new bloque_sub(new identificador(id), lp, cs); :}
+BLOQUE_PROCEDIMIENTO::=sub espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {:RESULT = new ArrayList(); RESULT.add(new parametro(tp, new identificador(id), t));:}
-                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new parametro(tp, new identificador(id), t));:}
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {:RESULT = new ArrayList(); RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t);:}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t);:}
                     ;
 
-BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new bloque_function(new identificador(id),lp, t, cf); :}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new bloque_function(new identificador(id), t, cf); :}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function {:RESULT = new bloque_function(new identificador(id), cs); :}
-                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function {:RESULT = new bloque_function(new identificador(id),lp, cs); :}
+BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters"));  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp);  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
           ;
 
-BLOQUE_LLAMADAS_FUNCIONES::=identificador abrirparentesis cerrarparentesis
-                            |identificador abrirparentesis ARGUMENTOS cerrarparentesis
+BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments"));:}
+                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments")); RESULT.getArguments().addListNode(a);:}
                   ;
 
-ARGUMENTOS::=EXP 
-             |EXP coma espacio ARGUMENTOS
+ARGUMENTOS::=EXP:e {:RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);:}
+             |EXP:e coma espacio ARGUMENTOS:a {:RESULT =a; RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);:}
              ;
 
 
-EXP::=  EXP:v opsum:os espacio EXP:e {:RESULT = new exp(v,os, e);:}
-       |EXP:v opmult:om espacio EXP:e {:RESULT = new exp(v,om, e);:}
-       |VALORES:v INDENTACION2 {:RESULT= v;:}
+EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr); RESULT.addNode(e); RESULT.addNode(e2);:}
+                    |EXP:e asignacion:a espacio EXP:e2 {:RESULT = new Condition("="); RESULT.addNode(e); RESULT.addNode(e2);:} 
+                    |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {:RESULT = new Condition(ol); RESULT.addNode(ec); RESULT.addNode(ec2);:}
+                    ;   
+
+
+EXP::=  EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2);:}
+       |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);:}
+       |VALORES:v INDENTACION2 {:RESULT =  v;:}
+       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v);:}
        ;
 
-
-
-EXP_FOR::=EXP_FOR:v opsum:os espacio EXP_FOR:e {:RESULT = new exp(v,os, e);:}
-       |EXP_FOR:v opmult:om espacio EXP_FOR:e {:RESULT = new exp(v,om, e);:}
-       |VALORES:v espacio {:RESULT = v;:}
-       ;
-
-
-VALORES::=identificador:id {: RESULT = new exp(new valores(new identificador(id)));:}
-          |truefalse:tf {: RESULT = new exp( new valores(tf));:}
-          |numero:n {: RESULT = new exp(new valores(n));:}
-          |cadena:c {: RESULT = new exp (new valores(c));:}
-          |identificador:id punto identificador:id2 {: RESULT = new exp (new valores(new identificador(id+"."+id2)));:}
-          |abrirparentesis EXP:e cerrarparentesis {: RESULT = new exp (new valores(new exp(e)));:}
-          |BLOQUE_LLAMADAS_FUNCIONES
+VALORES::=identificador:id {:RESULT = new Exp(id); :}
+          |truefalse:tf {:RESULT = new Exp(tf); :}
+          |numero:n {:RESULT = new Exp(n); :}
+          |cadena:c {:RESULT = new Exp(c); :}
+          |identificador:id punto identificador:id2 {:RESULT = new Exp(id+"."+id2); :}
+          |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; :}
+          |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf;:}
           ;
 
-CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF:ci {:RESULT =ci; :}
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_IF:ci {:RESULT =ci; :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {: RESULT = ci; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF:ci {:RESULT =ci; :}
-               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_IF:ci {:RESULT =ci; :}
+CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_FOR:bf INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bf); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_WHILE:bw INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci;:}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(ba);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_IF:ci {:RESULT =ci; RESULT.add(bllf);:}
                ;
-CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {: RESULT = ci; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION:bf INDENTACION2  CONTENIDO_IF_FUNCTION:ci  {:RESULT = ci; RESULT.add(bf); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION:bw INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci;:}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(ba);:}
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; :}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(br);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_IF_FUNCTION:ci {:RESULT =ci; RESULT.add(bllf);:}
                ;
 
 
-BLOQUE_IF::=If espacio EXP_CONDICIONALES:ec espacio then  CONTENIDO_IF:ci end espacio If {:RESULT = new declaracion_if(ec, ci);:}
-            |If espacio EXP_CONDICIONALES:ec espacio then  CONTENIDO_IF:ci Else INDENTACION2 CONTENIDO_IF:cie end espacio If {:RESULT = new declaracion_if(ec, ci, cie);:}
+BLOQUE_IF::=If espacio EXP_CONDICIONALES:ec  then  CONTENIDO_IF:ci end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body"));:}
+            |If espacio EXP_CONDICIONALES:ec then  CONTENIDO_IF:ci Else INDENTACION2 CONTENIDO_IF:cie end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body")); RESULT.getElseBody().addListNode(cie);:}
             ;
 
-BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec espacio then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end espacio If {:RESULT = new declaracion_if(ec, ci);:}
-            |If espacio EXP_CONDICIONALES:ec espacio then INDENTACION2 CONTENIDO_IF_FUNCTION:ci Else INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {:RESULT = new declaracion_if(ec, ci, cie);:}
+BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end espacio If  {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body"));:}
+            |If espacio EXP_CONDICIONALES:ec then INDENTACION2 CONTENIDO_IF_FUNCTION:ci Else INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body")); RESULT.getElseBody().addListNode(cie);:}
             ;
 
 
-EXP_CONDICIONALES::=VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
-                    |VALORES_CONDICIONALES:v1 espacio asignacion:a espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, "=", v2));:}
-                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
-                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
-                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2  {:RESULT= new operacion_logica(new condicion(v1, opr, v2));:}
-                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec  {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
-                    |VALORES_CONDICIONALES:v1 espacio asignacion espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, "=", v2), ol, ec);:}
-                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
-                    |VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol,ec);:}
-                    |not espacio VALORES_CONDICIONALES:v1 espacio oprel:opr espacio not espacio VALORES_CONDICIONALES:v2 oplog:ol EXP_CONDICIONALES:ec {:RESULT= new operacion_logica(new condicion(v1, opr, v2), ol, ec);:}
-                    ;
 
 
-VALORES_CONDICIONALES::=identificador:id  {: RESULT = new condicion(new valores_con(new identificador(id)));:}
-          |truefalse:tf  {: RESULT = new condicion(new valores_con(tf));:}
-          |numero:n  {: RESULT = new condicion(new valores_con(n));:}
-          |cadena:c  {: RESULT = new condicion(new valores_con(c));:}
-          |identificador:id punto identificador:id2  {: RESULT = new condicion(new valores_con(new identificador(id+"."+id2)));:}
-          |abrirparentesis EXP_CONDICIONALES:c cerrarparentesis  {: RESULT = new condicion(new valores_con(c));:}
-          |BLOQUE_LLAMADAS_FUNCIONES
-          ;
-
-BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new declaracion_asignacion(new identificador(id), "=", e); :}
-               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {:RESULT = new declaracion_asignacion(new identificador(id+"."+id2), "=", e); :}
+BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);:}
+               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(id+"."+id2)); RESULT.addNode(e);:}
                ;
 
-BLOQUE_FOR::=For espacio identificador espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR next
-             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP_FOR  to espacio EXP CONTENIDO_FOR next
+BLOQUE_ASIGNACION_FOR::=identificador:id espacio as:as espacio TIPOS:t espacio asignacion espacio EXP:e {:RESULT= new Stmt_Asignacion_For("="); RESULT.addNode(new Stmt_Variable("var")); RESULT.getIdentificadorOVar().addNode(new Node(id)); RESULT.getIdentificadorOVar().addNode(t); RESULT.addNode(e);:}
+                        |identificador:id espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);:}
+                        |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(id+"."+id2)); RESULT.addNode(e);:}
+                        ;
+
+
+BLOQUE_FOR::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e CONTENIDO_FOR:cf next {:RESULT = new Stmt_For("for"); RESULT.addNode(ba);  RESULT.addNode(e);RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(cf);:}
              ;
 
 
-BLOQUE_FOR_FUNCTION::=For espacio identificador espacio asignacion espacio EXP_FOR  to espacio EXP  CONTENIDO_FOR_FUNCTION next
-             |For espacio identificador espacio as espacio TIPOS espacio asignacion espacio EXP_FOR to espacio EXP CONTENIDO_FOR_FUNCTION next
+BLOQUE_FOR_FUNCTION::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e  CONTENIDO_FOR_FUNCTION:cf next {:RESULT = new Stmt_For("for"); RESULT.addNode(ba);  RESULT.addNode(e);RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(cf);:}
              ;
 
-CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_FOR:cf {:RESULT =cf; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf  {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_WHILE INDENTACION2 CONTENIDO_FOR:cf {:RESULT =cf; :}
+CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bi);:}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR:cf  {:RESULT = cf; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_WHILE:bw INDENTACION2 CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_FOR:cf {:RESULT = cf;:}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(ba);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FOR:cf {:RESULT =cf; RESULT.add(bllf);:}
                ;
-CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {: RESULT = cf; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
-               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bi);:}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {:RESULT = cf; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_WHILE_FUNCTION:bw INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
                |newline INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf;:}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(ba);:}
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; :}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(br);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FOR_FUNCTION:cf {:RESULT =cf; RESULT.add(bllf);:}
                ;
 
-BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE loop
+BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_WHILE:cw loop {:RESULT= new Stmt_While("while"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(cw); :}
              ;
 
 
-BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES INDENTACION2 CONTENIDO_WHILE_FUNCTION loop
+BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_WHILE_FUNCTION:cw loop {:RESULT= new Stmt_While("while"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(cw); :}
              ;
 
-CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
-               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {: RESULT = cw; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
-               |newline INDENTACION2 BLOQUE_FOR INDENTACION2  CONTENIDO_WHILE:cw {:RESULT =cw; :}
+CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {:RESULT = cw; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_FOR:bf INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bf); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
-               |newline INDENTACION2 CONTENIDO_WHILE:cw {:RESULT = cw;:}
+               |newline INDENTACION2 CONTENIDO_WHILE:cw  {:RESULT = cw; :}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(ba);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_WHILE:cw {:RESULT =cw; RESULT.add(bllf);:}
                ;
-CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
-               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {: RESULT = cw; for(int i=0;i<dv.size();i++){RESULT.add(dv.get(i));}:}
-               |newline INDENTACION2 BLOQUE_ESCRITURA INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
-               |newline INDENTACION2 BLOQUE_FOR_FUNCTION INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bl); :}
+               |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bi); :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {:RESULT = cw; RESULT.addAll(dv);:}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(be); :}
+               |newline INDENTACION2 BLOQUE_FOR_FUNCTION:bf INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bf); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
-               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw;:}
+               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; :}
                |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(ba);:}
-               |newline INDENTACION2 BLOQUE_RETURN CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; :}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(br);:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bc);:}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_WHILE_FUNCTION:cw {:RESULT =cw; RESULT.add(bllf);:}
                ;
 
 
-BLOQUE_ESTRUCTURA::=type espacio identificador:id INDENTACION2 CONTENIDO_ESTRUCTURA:ce end espacio type {:RESULT = ce; RESULT.setIdentificador(new identificador(id)); :}
+BLOQUE_ESTRUCTURA::=type espacio identificador:id INDENTACION2 CONTENIDO_ESTRUCTURA:ce end espacio type {:RESULT = new Stmt_Type("type"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(ce); :}
                     ;
 
-CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.addDeclaracionVar(dve);:}
-               |newline INDENTACION2 {:RESULT = new bloque_type();:}
-               |newline INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce;:} 
-               |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.addDeclaracion(bc);:}
+CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.add(dve);:}
+               |newline INDENTACION2 {:RESULT = new ArrayList();:}
+               |newline INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce;:}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.add(bc);:}
                ;
-DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:RESULT = new declaracion_var_estructura(new identificador(id), t);:}
+DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:RESULT = new Stmt_Variable("as"); RESULT.addNode(new Node(id)); RESULT.addNode(t);:}
                                  ;
 
-BLOQUE_LECTURA::=console punto read abrirparentesis cerrarparentesis
+BLOQUE_LECTURA::=identificador:id espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id));:}
+                 |identificador:id punto identificador:id2 espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id+"."+id2));:}
+                 |console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read");:}
                  ;
 
-BLOQUE_ESCRITURA::=console  punto write abrirparentesis VALORES cerrarparentesis
+BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {:RESULT = new Stmt_Escritura("write"); RESULT.addNode(e);:}
                  ;
 
-BLOQUE_COMENTARIOS::=comentario:c {:RESULT = new declaracion_comentario(c);:}
+BLOQUE_COMENTARIOS::=comentario:c {:RESULT = new Stmt_Comentario("comment"); RESULT.addNode(new Node(c));:}
                      ;
 
 
