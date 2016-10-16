@@ -17,10 +17,17 @@ public class Stmt_Asignacion extends Node {
         super(v);
     }
     
+    public Node getIdentificador(){
+        try{
+            return hijos.get(0);
+        }catch(Exception e){
+            return null;
+        }
+    }
     
     public Node getExp(){
         try{
-            return hijos.get(0);
+            return hijos.get(1);
         }catch(Exception e){
             return null;
         }
@@ -29,6 +36,7 @@ public class Stmt_Asignacion extends Node {
     public void toNode(DefaultMutableTreeNode dmtn){
             DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
             dmtn.add(nodo);
+            getIdentificador().toNode(nodo);
             getExp().toNode(nodo);
         
    }
