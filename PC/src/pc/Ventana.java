@@ -209,11 +209,11 @@ public class Ventana extends javax.swing.JFrame {
             Lexer scanner = new Lexer(new FileReader(archivo));
             Lexer scanner2 = new Lexer(new FileReader(archivo));
             try {
-              Vbasicsintaxis  p = new Vbasicsintaxis(scanner);
+              VbasicSintaxisAmbito  p = new VbasicSintaxisAmbito(scanner);
                 p.parse();
                 tds = p.t_simbolos;
                 if (p.errors_count==0) {
-                   Vbasictipos vt = new Vbasictipos(scanner2);
+                   VbasicTiposArbol vt = new VbasicTiposArbol(scanner2);
                     vt.parse();
                     ArbolAbstracto = vt.programaT;
                     try {

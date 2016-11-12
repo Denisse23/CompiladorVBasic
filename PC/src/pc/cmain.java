@@ -22,9 +22,9 @@ public class cmain {
         //Seleccionamos la opción de nombre de archivo
         opciones[2] = "-parser";
         //Le damos el nombre que queremos que tenga
-        opciones[3] = "Vbasicsintaxis";
+        opciones[3] = "VbasicSintaxisAmbito";
         //Le decimos donde se encuentra el archivo .cup
-        opciones[4] = "src\\PC\\Vbasic_sintaxis.cup";
+        opciones[4] = "src\\PC\\VbasicSintaxisAmbito.cup";
         
         
         String opciones1[] = new String[5];
@@ -35,9 +35,9 @@ public class cmain {
         //Seleccionamos la opción de nombre de archivo
         opciones1[2] = "-parser";
         //Le damos el nombre que queremos que tenga
-        opciones1[3] = "Vbasictipos";
+        opciones1[3] = "VbasicTiposArbol";
         //Le decimos donde se encuentra el archivo .cup
-        opciones1[4] = "src\\PC\\Vbasic.cup";
+        opciones1[4] = "src\\PC\\VbasicTiposArbol.cup";
         try {
             java_cup.Main.main(opciones);
             java_cup.Main.main(opciones1);
