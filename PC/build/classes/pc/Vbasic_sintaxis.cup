@@ -12,6 +12,7 @@ parser code {:
      public  int errors_count =0;
 public void report_error(String message, Object info) {
     if (info instanceof String){
+        errors++;
 	errors_count++; 
       /*System.err.println( info + " "+ message);*/
     }
@@ -32,6 +33,42 @@ public void report_error(String message, Object info) {
     public void error_ambito(String id, int line, int column){
         errors_count++;
         System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito): Semantic error");
+    }
+
+    public void error_ambito_id_no_es_registro (String id, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  el registro: "+id+" no ha sido declarado): Semantic error");
+    }
+
+    public void error_ambito_no_existe_funcion (String id, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  la funcion o procedimiento: "+id+" no ha sido declarado): Semantic error");
+    }
+
+    public void error_no_main(){
+        errors_count++;
+        System.err.println("Error (No se encontro el procedimiento main): Semantic error");
+    }
+
+    public void error_var_o_type_global(){
+        errors_count++;
+        System.err.println("Error (Solamente se permiten comentarios después de una función o procedimiento): Semantic error");
+    }
+
+    public void error_ambito_no_existe_var (String id, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  la variable: "+id+" no ha sido declarada): Semantic error");
+    }
+
+    public void error_uso_estructuras(String id, String tipo,String registro, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  la variable: "+id+" en el registro: "+registro+" es del tipo básico o el registro: "
+                                    +tipo+" no ha sido declarado): Semantic error");
+    }
+
+    public void  error_registro_no_existe_var (String id,String registro, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  la variable: "+id+" no ha sido declarada en el registro: "+registro+"): Semantic error");
     }
 
       
@@ -148,6 +185,9 @@ non terminal Stmt_Variable DECLARACION_VARIABLE_ESTRUCTURA;
 non terminal Stmt_Lectura BLOQUE_LECTURA;
 non terminal Stmt_Escritura BLOQUE_ESCRITURA;
 non terminal Stmt_Comentario BLOQUE_COMENTARIOS;
+non terminal String ELEMENTOS_ESTRUCTUA;
+non terminal CODIGO_ELEMENTOS_ESTRUCTUA;
+non terminal CODIGO_FUNCION;
 
 
 
@@ -157,16 +197,16 @@ precedence left opmult;
 
 precedence left not, oplog;
 
-INICIO::= PROGRAMA:p {::}
-         |newline PROGRAMA:p {::}
+INICIO::= PROGRAMA:p {: if(!t_simbolos.hay_main()){ error_no_main();}:}
+         |newline PROGRAMA:p {:if(!t_simbolos.hay_main()){ error_no_main();}:}
          ;
 
 PROGRAMA::=INDENTACION PROGRAMA:p {::}
            |INDENTACION PROGRAMA2:p2 {::}
            |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal);} sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_PROCEDIMIENTO:bp {:remover_ambito(); offset=stack_offset.pop();:}PROGRAMA2:p2 {: :}
            |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_FUNCION:bf {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 PROGRAMA2:p2 {::}
-           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); } sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_ESTRUCTURA:be {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 PROGRAMA2:p2 {::}
-           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }:}DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: :}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }if(t_simbolos.hay_proc_o_fun()){error_var_o_type_global();} sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_ESTRUCTURA:be {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 PROGRAMA2:p2 {::}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); } if(t_simbolos.hay_proc_o_fun()){error_var_o_type_global();}:}DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {::}
            |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
@@ -245,7 +285,17 @@ DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio
 TIPOS::=tipovar:tv {: if(tv.toLowerCase().equals("string")){RESULT = new stringt();}
                        if(tv.toLowerCase().equals("boolean")){RESULT = new booleant();}
                         if(tv.toLowerCase().equals("integer")){RESULT = new integert();}:}
-          |identificador:id  {::}
+          |identificador:id  {: if(t_simbolos.existe_id(id,"1", "Principal")){
+                                    if(t_simbolos.getTabla("Principal").get_id(id).getTipo().getName().equals("Record")){
+                                        RESULT = new Tipo(id);
+                                    }else{
+                                        error_ambito_id_no_es_registro(id, idleft, idright);
+                                        RESULT = new Tipo(id);
+                                    }
+                                }else{
+                                        error_ambito_id_no_es_registro(id, idleft, idright);
+                                        RESULT = new Tipo(id);
+                                }:}
           ;
 
 BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis {: if(!t_simbolos.existe_id(id,"1", "Principal")){
@@ -255,51 +305,59 @@ BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarpare
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub
-                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
+                       |sub espacio identificador:id abrirparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
                                                 Tipo t = new Funcion();
                                                 t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
-                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {::}
+                                           } :} LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {::}
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {::}
-                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {::}
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+                                                Tipo n;
+                                                if(t.equals("String")){
+                                                    n = new stringt();
+                                                }else if(t.equals("Integer")){
+                                                    n = new integert();
+                                                }else{
+                                                    n = new booleant();
+                                                }
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,remover(ambito_actual),-1));
+                                                t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
+                                                t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
+                                                Tipo n;
+                                                if(t.equals("String")){
+                                                    n = new stringt();
+                                                }else if(t.equals("Integer")){
+                                                    n = new integert();
+                                                }else{
+                                                    n = new booleant();
+                                                }
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, remover(ambito_actual),-1));
+                                                t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
+                                                t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:}coma espacio LISTA_PARAMENTROS:lp {::}
                     ;
 
-BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  espacio as espacio TIPOS:t  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
-                                                    Tipo t1 = new Funcion();
-                                                    t_simbolos.getTabla("Principal").add_id(new Token(id,t1, idleft, idright,"1",-1));
-                                                
-                                           }else{
-                                                error_ambito(id, idleft, idright);
-                                           } :}INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {::}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
-                                                    Tipo t1 = new Funcion();
-                                                    t_simbolos.getTabla("Principal").add_id(new Token(id,t1, idleft, idright,"1",-1));
-                                                
-                                           }else{
-                                                error_ambito(id, idleft, idright);
-                                           } :} INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {::}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
-                                                Tipo t = new Funcion();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
-                                                
-                                           }else{
-                                                error_ambito(id, idleft, idright);
-                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio function {::}
-                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
-                                                Tipo t = new Funcion();
-                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
-                                                
-                                           }else{
-                                                error_ambito(id, idleft, idright);
-                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio function  {::}
+BLOQUE_FUNCION::=function espacio CODIGO_FUNCION abrirparentesis  LISTA_PARAMENTROS:lp  cerrarparentesis espacio as espacio TIPOS:t  INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {::}
+                 |function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {::}
+                 |function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis   INDENTACION2 CONTENIDO_SUB:cs end espacio function {::}
+                 |function espacio CODIGO_FUNCION abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  INDENTACION2 CONTENIDO_SUB:cs end espacio function  {::}
           ;
 
-BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {::}
-                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {::}
+BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
+                                                       error_ambito_no_existe_funcion (id, idleft, idright);     
+                                                        }:}
+                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
+                                                       error_ambito_no_existe_funcion (id, idleft, idright);     
+                                                        }:}
                   ;
 
 ARGUMENTOS::=EXP:e {::}
@@ -319,18 +377,35 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {::}
        |not espacio VALORES:v INDENTACION2 {::}
        ;
 
-VALORES::=identificador:id {::}
+VALORES::=identificador:id {:if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){
+                                   error_ambito_no_existe_var (id, idleft, idright);     
+                              }:}
           |truefalse:tf {::}
           |numero:n {: :}
           |cadena:c {::}
-          |identificador:id punto identificador:id2 {::}
+          |ELEMENTOS_ESTRUCTUA:ee {: Object[] ob = t_simbolos.existe_id_estructura(ee, remover(ambito_actual));
+                                      String s0 = ob[0].toString();
+                                      if(!s0.equals("true")){
+                                        String s1 = ob[1].toString();
+                                        if(s1.equals("var")){
+                                            error_ambito_no_existe_var (ee.split("\\.")[0], eeleft, eeright);
+                                        }else{
+                                            String s4 = ob[4].toString();
+                                            if(s4.equals("")){
+                                                error_uso_estructuras(ob[3].toString(), ob[2].toString(),ob[5].toString(), eeleft, eeright);
+                                            }else{
+                                               error_registro_no_existe_var (s4,ob[2].toString(), eeleft, eeright); 
+                                            }
+                                        }
+                                     }:}
           |abrirparentesis EXP:e cerrarparentesis {::}
           |BLOQUE_LLAMADAS_FUNCIONES:bllf {::}
           ;
-
+ELEMENTOS_ESTRUCTUA::= ELEMENTOS_ESTRUCTUA:ee punto identificador:id {: RESULT=ee+"."+id;:}
+                       |identificador:id punto identificador:id2 {:RESULT=""; RESULT+=id+"."+id2;:}
+                       ;
 CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF:ci {: :}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR:bf {:remover_ambito();remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_IF:ci {::}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF:ci {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_WHILE:bw  {:remover_ambito();remover_ambito(); offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_IF:ci {: :}
                |newline INDENTACION2 {::}
@@ -341,7 +416,6 @@ CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF
                ;
 CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF_FUNCTION:ci {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR_FUNCTION:bf {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_IF_FUNCTION:ci  {::}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF_FUNCTION:ci {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE_FUNCTION:bw {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_IF_FUNCTION:ci {::}
                |newline INDENTACION2 {::}
@@ -364,13 +438,16 @@ BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENID
 
 
 
-BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {::}
-               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {::}
+BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio {:if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){
+                                   error_ambito_no_existe_var (id, idleft, idright);     
+                              }:} EXP:e 
+               |CODIGO_ELEMENTOS_ESTRUCTUA espacio asignacion  espacio  EXP:e 
                ;
 
-BLOQUE_ASIGNACION_FOR::=identificador:id espacio as:as espacio TIPOS:t espacio asignacion espacio EXP:e {::}
-                        |identificador:id espacio asignacion espacio EXP:e  {::}
-                        |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e {::}
+BLOQUE_ASIGNACION_FOR::=identificador:id espacio asignacion {:if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){
+                                   error_ambito_no_existe_var (id, idleft, idright);     
+                              }:} espacio EXP:e  {::}
+                        |CODIGO_ELEMENTOS_ESTRUCTUA espacio asignacion espacio EXP:e {::}
                         ;
 
 
@@ -383,7 +460,6 @@ BLOQUE_FOR_FUNCTION::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e  CON
 
 CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR:cf {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_IF:bi {:remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_FOR:cf {::}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR:cf  {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE:bw {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 CONTENIDO_FOR:cf {::}
                |newline INDENTACION2 {::}
@@ -394,7 +470,6 @@ CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_F
                ;
 CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {: :}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF_FUNCTION:bi {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {::}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE_FUNCTION:bw{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {::}
                |newline INDENTACION2 {::}
@@ -414,7 +489,6 @@ BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_
 
 CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE:cw {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF:bi{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_WHILE:cw {::}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_WHILE:cw {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_FOR:bf{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_WHILE:cw {::}
                |newline INDENTACION2 {::}
@@ -425,7 +499,6 @@ CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO
                ;
 CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {::}
                |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF_FUNCTION:bi {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {: :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {::}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {::}
                |newline INDENTACION2{:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR_FUNCTION:bf {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {: :}
                |newline INDENTACION2 {::}
@@ -465,8 +538,10 @@ DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:
                                            }:}
                                  ;
 
-BLOQUE_LECTURA::=identificador:id espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {::}
-                 |identificador:id punto identificador:id2 espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {::}
+BLOQUE_LECTURA::=identificador:id espacio asignacion espacio {:if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){
+                                   error_ambito_no_existe_var (id, idleft, idright);     
+                              }:} console punto read abrirparentesis cerrarparentesis {::}
+                 |CODIGO_ELEMENTOS_ESTRUCTUA espacio   asignacion  espacio console punto read abrirparentesis cerrarparentesis 
                  |console punto read abrirparentesis cerrarparentesis {::}
                  ;
 
@@ -475,6 +550,29 @@ BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {
 
 BLOQUE_COMENTARIOS::=comentario:c {::}
                      ;
+
+CODIGO_ELEMENTOS_ESTRUCTUA::=ELEMENTOS_ESTRUCTUA:ee {: Object[] ob = t_simbolos.existe_id_estructura(ee, remover(ambito_actual));
+                                      String s0 = ob[0].toString();
+                                      if(!s0.equals("true")){
+                                        String s1 = ob[1].toString();
+                                        if(s1.equals("var")){
+                                            error_ambito_no_existe_var (ee.split("\\.")[0], eeleft, eeright);
+                                        }else{
+                                            String s4 = ob[4].toString();
+                                            if(s4.equals("")){
+                                                error_uso_estructuras(ob[3].toString(), ob[2].toString(),ob[5].toString(), eeleft, eeright);
+                                            }else{
+                                               error_registro_no_existe_var (s4,ob[2].toString(), eeleft, eeright); 
+                                            }
+                                        }
+                                     }:};
+CODIGO_FUNCION::=identificador:id {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                Tipo t = new Funcion();
+                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :};
 
 
 

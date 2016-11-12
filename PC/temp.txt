@@ -1,10 +1,12 @@
-sub m()
-dim f as integer
+type o
+ z as integer
+end type
 
-if 5 > 6 then
-dim l as string
-end if
+type e
+w as string
+end type
 
-dim g as boolean
-dim l as string
+sub main()
+dim i as e
+i.a = 5 + 6
 end sub

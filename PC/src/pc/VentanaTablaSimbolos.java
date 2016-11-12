@@ -31,7 +31,7 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
                 model1.addRow(o1);
                 for (int i = 0; i < tbs.tablas.get(k).get_ids().size(); i++) {
                     Object[] o = {tbs.tablas.get(k).get_ids().get(i).getId(),tbs.tablas.get(k).get_ids().get(i).getTipo().getName(), tbs.tablas.get(k).get_ids().get(i).getLinea(), tbs.tablas.get(k).get_ids().get(i).getColumna(), tbs.tablas.get(k).get_ids().get(i).getAmbito()
-                    ,tbs.tablas.get(k).get_ids().get(i).getOffset()};
+                    ,tbs.tablas.get(k).get_ids().get(i).getOffset(),tbs.tablas.get(k).get_ids().get(i).isIsParametro()};
 
                     model1.addRow(o);
                 }
@@ -64,11 +64,11 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Id", "Tipo", "Line", "Column", "Ambito", "Offset"
+                "Id", "Tipo", "Line", "Column", "Ambito", "Offset", "EsParametro"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Integer.class
+                java.lang.String.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Integer.class, java.lang.Boolean.class
             };
 
             public Class getColumnClass(int columnIndex) {

@@ -1,10 +1,11 @@
 Type MiNuevoTipo
 	a As Integer
 	b As String
-	c As Double
+	c As Integer
 End Type
 
 Function nuevo(ByVal j As Integer) As String
+	
 	If j = 0 Then
 		Return "Si"
 	Else
@@ -12,21 +13,22 @@ Function nuevo(ByVal j As Integer) As String
 	End If
 End Function
 
-Sub sub1(ByVal variable As MiNuevoTipo)
+Sub main(ByVal variable As Integer)
+	Dim r as MiNuevoTipo
 	Dim i As Integer
 	Console.Write(variable)
 
 	
 	
-	For i = 0 To variable.a
-		If i = 3 Then
+	For i = 0 To variable
+		If r.d = 3 Then
 			Console.Write(nuevo(5))
 		End If
 	Next
 
 	i = Console.Read()
 
-	Do While i <= variable.a 
+	Do While r.b <= variable
 		Console.Write(i)
 	Loop
 

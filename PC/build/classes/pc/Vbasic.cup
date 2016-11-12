@@ -60,6 +60,7 @@ non terminal Stmt_Variable DECLARACION_VARIABLE_ESTRUCTURA;
 non terminal Stmt_Lectura BLOQUE_LECTURA;
 non terminal Stmt_Escritura BLOQUE_ESCRITURA;
 non terminal Stmt_Comentario BLOQUE_COMENTARIOS;
+non terminal String ELEMENTOS_ESTRUCTUA;
 
 
 
@@ -144,8 +145,8 @@ BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarpare
                        |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {:RESULT = new ArrayList(); RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t);:}
-                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(t);:}
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:RESULT = new ArrayList(); RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
                     ;
 
 BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
@@ -179,14 +180,17 @@ VALORES::=identificador:id {:RESULT = new Exp(id); :}
           |truefalse:tf {:RESULT = new Exp(tf); RESULT.setTipo_tabla(new booleant()); :}
           |numero:n {:RESULT = new Exp(n); RESULT.setTipo_tabla(new integert()); :}
           |cadena:c {:RESULT = new Exp(c);  RESULT.setTipo_tabla(new stringt()); :}
-          |identificador:id punto identificador:id2 {:RESULT = new Exp(id+"."+id2); :}
+          |ELEMENTOS_ESTRUCTUA:ee {:RESULT = new Exp(ee); :}
           |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; RESULT.setTipo_tabla(e.getTipo_tabla());:}
           |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf;:}
           ;
 
+ELEMENTOS_ESTRUCTUA::= ELEMENTOS_ESTRUCTUA:ee punto identificador:id {: RESULT=ee+"."+id;:}
+                       |identificador:id punto identificador:id2 {:RESULT=""; RESULT+=id+"."+id2;:}
+                       ;
+
 CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_FOR:bf INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bf); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {:RESULT = ci; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_WHILE:bw INDENTACION2 CONTENIDO_IF:ci {:RESULT = ci; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -197,7 +201,6 @@ CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF
                ;
 CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_FOR_FUNCTION:bf INDENTACION2  CONTENIDO_IF_FUNCTION:ci  {:RESULT = ci; RESULT.add(bf); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_WHILE_FUNCTION:bw INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:RESULT = ci; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -221,12 +224,12 @@ BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENID
 
 
 BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);:}
-               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(id+"."+id2)); RESULT.addNode(e);:}
+               |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(ee)); RESULT.addNode(e);:}
                ;
 
 BLOQUE_ASIGNACION_FOR::=identificador:id espacio as:as espacio TIPOS:t espacio asignacion espacio EXP:e {:RESULT= new Stmt_Asignacion_For("="); RESULT.addNode(new Stmt_Variable("var")); RESULT.getIdentificadorOVar().addNode(new Node(id)); RESULT.getIdentificadorOVar().addNode(t); RESULT.addNode(e);:}
                         |identificador:id espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);:}
-                        |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(id+"."+id2)); RESULT.addNode(e);:}
+                        |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(ee)); RESULT.addNode(e);:}
                         ;
 
 
@@ -239,7 +242,6 @@ BLOQUE_FOR_FUNCTION::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e  CON
 
 CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bi);:}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf {:RESULT = cf; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR:cf  {:RESULT = cf; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_WHILE:bw INDENTACION2 CONTENIDO_FOR:cf {:RESULT = cf; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -250,7 +252,6 @@ CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_F
                ;
 CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bi);:}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {:RESULT = cf; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_WHILE_FUNCTION:bw INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {:RESULT = cf; RESULT.add(bw); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -270,7 +271,6 @@ BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_
 
 CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_IF:bi INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {:RESULT = cw; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_FOR:bf INDENTACION2  CONTENIDO_WHILE:cw {:RESULT = cw; RESULT.add(bf); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -281,7 +281,6 @@ CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO
                ;
 CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bl); :}
                |newline INDENTACION2 BLOQUE_IF_FUNCTION:bi INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bi); :}
-               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {:RESULT = cw; RESULT.addAll(dv);:}
                |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(be); :}
                |newline INDENTACION2 BLOQUE_FOR_FUNCTION:bf INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {:RESULT = cw; RESULT.add(bf); :}
                |newline INDENTACION2 {:RESULT = new ArrayList();:}
@@ -305,7 +304,7 @@ DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:
                                  ;
 
 BLOQUE_LECTURA::=identificador:id espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id));:}
-                 |identificador:id punto identificador:id2 espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id+"."+id2));:}
+                 |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(ee));:}
                  |console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read");:}
                  ;
 

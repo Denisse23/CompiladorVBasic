@@ -18,6 +18,8 @@ public class Token {
     private int columna;
     private String ambito;
     private int offset;
+    private boolean isParametro;
+    private String tipoParametro;
     
     public Token(String id,Tipo tipo, int linea, int columna, String ambito, int offset){
         this.id = id;
@@ -26,6 +28,8 @@ public class Token {
         this.columna = columna;
         this.ambito = ambito;
         this.offset = offset;
+        this.isParametro = false;
+        this.tipoParametro="";
     }
 
     public String getId() {
@@ -75,6 +79,23 @@ public class Token {
     public void setOffset(int offset) {
         this.offset = offset;
     }
+
+    public boolean isIsParametro() {
+        return isParametro;
+    }
+
+    public void setIsParametro(boolean isParametro) {
+        this.isParametro = isParametro;
+    }
+
+    public String getTipoParametro() {
+        return tipoParametro;
+    }
+
+    public void setTipoParametro(String tipoParametro) {
+        this.tipoParametro = tipoParametro;
+    }
+    
     
     
 }

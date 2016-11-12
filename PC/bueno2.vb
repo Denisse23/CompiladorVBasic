@@ -1,6 +1,6 @@
 Dim numero As Integer
 
-Function funcion(ByRef otrovalor As Double)
+Function funcion(ByRef otrovalor As Integer)
 
 	If numero >= 3 Then
 		numero2 = otrovalor * 3
@@ -13,8 +13,8 @@ Function funcion(ByRef otrovalor As Double)
 End Function
 
 Function funcion1()
-	Dim a As Double
-	Dim numero2 As Double
+	Dim a As Integer
+	Dim numero2 As Integer
 	
 	If b >= 3 Then
 		numero2 = b
