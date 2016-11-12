@@ -1,0 +1,484 @@
+package pc;
+import java_cup.runtime.*;
+import java_cup.runtime.Symbol;
+import pc.treeelements.*;
+import java.util.ArrayList;
+import pc.Tipos.*;
+import java.util.Stack;
+import java.util.Collections;
+
+parser code {:
+     public static int errors = 0;
+     public  int errors_count =0;
+public void report_error(String message, Object info) {
+    if (info instanceof String){
+	errors_count++; 
+      /*System.err.println( info + " "+ message);*/
+    }
+    else {
+    	StringBuffer m = new StringBuffer("Error ");
+    	if (info instanceof java_cup.runtime.Symbol) 
+     	   m.append( "("+info.toString()+")" );     
+    	m.append(" : "+message);   
+    	System.err.println(m);
+    }
+  }
+   
+  public void report_fatal_error() {
+    //report_error(message, info);
+    throw new RuntimeException("Fatal Syntax Error");
+  }
+
+    public void error_ambito(String id, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito): Semantic error");
+    }
+
+      
+    public TablasDeSimbolos t_simbolos = new TablasDeSimbolos();
+    public TablaSimbolos t_principal = new TablaSimbolos("Principal");
+    public String ambito_actual ="1.0";
+    public String nueva_estructura;
+    public int offset = 0;
+    public Stack<Integer> stack_offset = new Stack<Integer>();
+
+    public void sumar_ambito(){
+            String[] partes = ambito_actual.split("\\.");
+            int add = Integer.parseInt(partes[partes.length-1]) + 1;
+            ambito_actual = "";
+            for(int i=0; i<partes.length-1; i++){
+                ambito_actual += partes[i]+".";
+            }
+            ambito_actual += add;
+            
+    }
+
+    public void remover_ambito(){
+            
+            String[] partes = ambito_actual.split("\\.");
+            ambito_actual = "";
+            for(int i=0; i<partes.length-1; i++){
+                if(i==0)
+                    ambito_actual += partes[i];
+                else
+                    ambito_actual += "."+partes[i];
+            }
+            
+    }
+
+        public String remover(String ambito){
+            
+            String[] partes = ambito_actual.split("\\.");
+            String ambito_a = "";
+            for(int i=0; i<partes.length-1; i++){
+                if(i==0)
+                    ambito_a += partes[i];
+                else
+                    ambito_a += "."+partes[i];
+            }
+
+           return ambito_a;
+            
+    }
+
+     public int index_primer_id;
+     public void asignar_offset_ids(){
+         Tipo t = t_simbolos.getTabla("Principal").get_ids().get(t_simbolos.getTabla("Principal").get_ids().size()-1).getTipo();
+         
+         for(int i=index_primer_id; i< t_simbolos.getTabla("Principal").get_ids().size();i++){
+            if(t_simbolos.getTabla("Principal").get_ids().get(i).getOffset()==-1){
+                t_simbolos.getTabla("Principal").get_ids().get(i).setTipo(t);
+                t_simbolos.getTabla("Principal").get_ids().get(i).setOffset(offset);
+                offset+=t.getTamano();
+            }
+
+         }
+         
+     }
+  
+
+
+:};
+
+
+terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, type,  asignacion;
+terminal function,  coma, end,  then, to, next,  loop, dim, as, not;
+terminal Do, If, For, While, Return, Else; //palabras reservadas de java
+
+terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
+terminal String espacio, newline, tab, cadena, comentario, numero;
+
+
+non terminal Programa INICIO;
+non terminal Programa PROGRAMA;
+non terminal Programa PROGRAMA2;
+non terminal INDENTACION;
+non terminal INDENTACION2;
+non terminal Tipo DECLARACION_VARIABLE;
+non terminal Tipo DECLARACION_VARIABLE2;
+non terminal Stmt_Funcion BLOQUE_FUNCION;
+non terminal Stmt_Llamada_Funcion BLOQUE_LLAMADAS_FUNCIONES;
+non terminal Stmt_Procedimiento BLOQUE_PROCEDIMIENTO;
+non terminal ArrayList<Node> LISTA_PARAMENTROS;
+non terminal ArrayList<Node> CONTENIDO_SUB;
+non terminal ArrayList<Node> CONTENIDO_FUNCTION;
+non terminal Stmt_Return BLOQUE_RETURN;
+non terminal Stmt_If BLOQUE_IF;
+non terminal Stmt_If BLOQUE_IF_FUNCTION;
+non terminal Tipo TIPOS;
+non terminal Exp VALORES;
+non terminal ArrayList<Node> ARGUMENTOS;
+non terminal Exp EXP;
+non terminal Condition EXP_CONDICIONALES;
+non terminal ArrayList<Node> CONTENIDO_IF;
+non terminal ArrayList<Node> CONTENIDO_IF_FUNCTION;
+non terminal Stmt_Asignacion BLOQUE_ASIGNACION;
+non terminal Stmt_For BLOQUE_FOR;
+non terminal Stmt_For BLOQUE_FOR_FUNCTION;
+non terminal Stmt_Asignacion_For BLOQUE_ASIGNACION_FOR;
+non terminal ArrayList<Node> CONTENIDO_FOR;
+non terminal ArrayList<Node> CONTENIDO_FOR_FUNCTION;
+non terminal Stmt_While BLOQUE_WHILE;
+non terminal Stmt_While BLOQUE_WHILE_FUNCTION;
+non terminal ArrayList<Node> CONTENIDO_WHILE;
+non terminal ArrayList<Node> CONTENIDO_WHILE_FUNCTION;
+non terminal Stmt_Type BLOQUE_ESTRUCTURA;
+non terminal ArrayList<Node> CONTENIDO_ESTRUCTURA;
+non terminal Stmt_Variable DECLARACION_VARIABLE_ESTRUCTURA;
+non terminal Stmt_Lectura BLOQUE_LECTURA;
+non terminal Stmt_Escritura BLOQUE_ESCRITURA;
+non terminal Stmt_Comentario BLOQUE_COMENTARIOS;
+
+
+
+precedence left opsum;
+precedence left espacio;
+precedence left opmult;
+
+precedence left not, oplog;
+
+INICIO::= PROGRAMA:p {::}
+         |newline PROGRAMA:p {::}
+         ;
+
+PROGRAMA::=INDENTACION PROGRAMA:p {::}
+           |INDENTACION PROGRAMA2:p2 {::}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal);} sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_PROCEDIMIENTO:bp {:remover_ambito(); offset=stack_offset.pop();:}PROGRAMA2:p2 {: :}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_FUNCION:bf {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 PROGRAMA2:p2 {::}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); } sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_ESTRUCTURA:be {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 PROGRAMA2:p2 {::}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }:}DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: :}
+           |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {::}
+           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
+           ;
+PROGRAMA2::=newline PROGRAMA:p {::}
+            |newline {::}
+            | {::}
+            ;
+
+CONTENIDO_SUB::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_SUB:cs  {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset); offset=0;:} BLOQUE_IF:bi {: remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_SUB:cs {: :}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset); offset=0;:} BLOQUE_FOR:bf  {: remover_ambito(); offset=stack_offset.pop();:}INDENTACION2  CONTENIDO_SUB:cs {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_SUB:cs  {: :}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_SUB:cs {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset); offset=0;:} BLOQUE_WHILE:bw {: remover_ambito();offset=stack_offset.pop(); :}  INDENTACION2 CONTENIDO_SUB:cs {: :}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_SUB:cs {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_SUB:cs {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_SUB:cs {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_SUB:cs {::}
+               ;
+
+
+CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FUNCTION:cf  {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR_FUNCTION:bf {: remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_FUNCTION:cf {: :}
+               |newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FUNCTION:cf {: :}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_FUNCTION:cf {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_IF_FUNCTION:bi {: remover_ambito();offset=stack_offset.pop(); :} INDENTACION2  CONTENIDO_FUNCTION:cf {: :}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_WHILE_FUNCTION:bw {: remover_ambito();offset=stack_offset.pop(); :} INDENTACION2  CONTENIDO_FUNCTION:cf {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_RETURN:br  CONTENIDO_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FUNCTION:cf {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FUNCTION:cf {::}
+               ;
+
+
+
+BLOQUE_RETURN::= Return espacio EXP:e {::}
+         ; 
+
+INDENTACION2::=INDENTACION INDENTACION2
+               |
+               ;
+
+INDENTACION::=tab
+              |espacio
+              ;
+
+DECLARACION_VARIABLE::=dim {:index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();:} espacio DECLARACION_VARIABLE2:dv2 {: asignar_offset_ids();:}
+                       ;
+
+DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual) ,offset));
+                                                 offset+= t.getTamano();
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:} DECLARACION_VARIABLE2:dv2  {::}
+                               |identificador:id coma  espacio {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id, new integert(), idleft, idright, remover(ambito_actual),-1));
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:} DECLARACION_VARIABLE2:dv2 
+                               |identificador:id  espacio as:as espacio TIPOS:t {:  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual),-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:} 
+                                                
+                                          
+                                        
+
+                               ;
+
+TIPOS::=tipovar:tv {: if(tv.toLowerCase().equals("string")){RESULT = new stringt();}
+                       if(tv.toLowerCase().equals("boolean")){RESULT = new booleant();}
+                        if(tv.toLowerCase().equals("integer")){RESULT = new integert();}:}
+          |identificador:id  {::}
+          ;
+
+BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                Tipo t = new Funcion();
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t , idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub
+                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
+                                                Tipo t = new Funcion();
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {::}
+                ;
+
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t {::}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio TIPOS:t coma espacio LISTA_PARAMENTROS:lp {::}
+                    ;
+
+BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  espacio as espacio TIPOS:t  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                    Tipo t1 = new Funcion();
+                                                    t_simbolos.getTabla("Principal").add_id(new Token(id,t1, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :}INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {::}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                    Tipo t1 = new Funcion();
+                                                    t_simbolos.getTabla("Principal").add_id(new Token(id,t1, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {::}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                Tipo t = new Funcion();
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio function {::}
+                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                Tipo t = new Funcion();
+                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio function  {::}
+          ;
+
+BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {::}
+                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {::}
+                  ;
+
+ARGUMENTOS::=EXP:e {::}
+             |EXP:e coma espacio ARGUMENTOS:a {::}
+             ;
+
+
+EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {::}
+                    |EXP:e asignacion:a espacio EXP:e2 {::} 
+                    |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {::}
+                    ;   
+
+
+EXP::= EXP:e opsum:os espacio EXP:e2 {::}
+       |EXP:e opmult:om espacio EXP:e2 {::}
+       |VALORES:v INDENTACION2 {::}
+       |not espacio VALORES:v INDENTACION2 {::}
+       ;
+
+VALORES::=identificador:id {::}
+          |truefalse:tf {::}
+          |numero:n {: :}
+          |cadena:c {::}
+          |identificador:id punto identificador:id2 {::}
+          |abrirparentesis EXP:e cerrarparentesis {::}
+          |BLOQUE_LLAMADAS_FUNCIONES:bllf {::}
+          ;
+
+CONTENIDO_IF::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF:ci {: :}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR:bf {:remover_ambito();remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_IF:ci {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF:ci {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF:ci {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_WHILE:bw  {:remover_ambito();remover_ambito(); offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_IF:ci {: :}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_IF:ci {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF:ci {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_IF:ci {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_IF:ci {::}
+               ;
+CONTENIDO_IF_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR_FUNCTION:bf {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_IF_FUNCTION:ci  {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE_FUNCTION:bw {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_IF_FUNCTION:ci {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_IF_FUNCTION:ci {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_IF_FUNCTION:ci {::}
+               ;
+
+
+BLOQUE_IF::=If espacio  EXP_CONDICIONALES:ec then  CONTENIDO_IF:ci end espacio If {::}
+            |If espacio EXP_CONDICIONALES:ec then  CONTENIDO_IF:ci  {:remover_ambito(); offset=stack_offset.pop();:} Else {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} INDENTACION2 CONTENIDO_IF:cie end espacio If {::}
+            ;
+
+BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end espacio If  {::}
+            |If espacio EXP_CONDICIONALES:ec then INDENTACION2 CONTENIDO_IF_FUNCTION:ci {:remover_ambito(); offset=stack_offset.pop();:}  Else  {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}  INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {::}
+            ;
+
+
+
+
+BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {::}
+               |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e  {::}
+               ;
+
+BLOQUE_ASIGNACION_FOR::=identificador:id espacio as:as espacio TIPOS:t espacio asignacion espacio EXP:e {::}
+                        |identificador:id espacio asignacion espacio EXP:e  {::}
+                        |identificador:id punto identificador:id2 espacio asignacion espacio EXP:e {::}
+                        ;
+
+
+BLOQUE_FOR::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e CONTENIDO_FOR:cf next {::}
+             ;
+
+
+BLOQUE_FOR_FUNCTION::=For espacio BLOQUE_ASIGNACION_FOR:ba to espacio EXP:e  CONTENIDO_FOR_FUNCTION:cf next {::}
+             ;
+
+CONTENIDO_FOR::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_IF:bi {:remover_ambito(); offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR:cf  {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE:bw {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR:cf {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR:cf {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FOR:cf {::}
+               ;
+CONTENIDO_FOR_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {: :}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF_FUNCTION:bi {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2  CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_FOR_FUNCTION:cf  {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_WHILE_FUNCTION:bw{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_FOR_FUNCTION:cf {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_FOR_FUNCTION:cf {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_FOR_FUNCTION:cf {::}
+               ;
+
+BLOQUE_WHILE::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_WHILE:cw loop {: :}
+             ;
+
+
+BLOQUE_WHILE_FUNCTION::=Do espacio While espacio EXP_CONDICIONALES:ec CONTENIDO_WHILE_FUNCTION:cw loop {: :}
+             ;
+
+CONTENIDO_WHILE::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE:cw {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF:bi{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_WHILE:cw {::}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2   CONTENIDO_WHILE:cw  {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2  CONTENIDO_WHILE:cw {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_FOR:bf{:remover_ambito();offset=stack_offset.pop();:} INDENTACION2  CONTENIDO_WHILE:cw {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_WHILE:cw  {::}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba  CONTENIDO_WHILE:cw {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE:cw {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_WHILE:cw {::}
+               ;
+CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {::}
+               |newline INDENTACION2 {:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_IF_FUNCTION:bi {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw {: :}
+               |newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  CONTENIDO_WHILE_FUNCTION:cw  {::}
+               |newline INDENTACION2 BLOQUE_ESCRITURA:be INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {::}
+               |newline INDENTACION2{:sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:} BLOQUE_FOR_FUNCTION:bf {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {: :}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_WHILE_FUNCTION:cw {: :}
+               |newline INDENTACION2 BLOQUE_ASIGNACION:ba CONTENIDO_WHILE_FUNCTION:cw {::}
+               |newline INDENTACION2 BLOQUE_RETURN:br CONTENIDO_WHILE_FUNCTION:cw {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_WHILE_FUNCTION:cw {::}
+               |newline INDENTACION2 BLOQUE_LLAMADAS_FUNCIONES:bllf CONTENIDO_WHILE_FUNCTION:cw {::}
+               ;
+
+
+BLOQUE_ESTRUCTURA::=type espacio identificador:id {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+                                                Tipo t = new Registro();
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                t_simbolos.addTabla(new TablaSimbolos(id));
+                                                nueva_estructura = id;
+                                            }else{
+                                                error_ambito(id, idleft, idright);
+                                           } :} INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:
+                                                int tamano=0;
+                                                for(int i=0; i<t_simbolos.getTabla(id).get_ids().size();i++){
+                                                    tamano+=t_simbolos.getTabla(id).get_ids().get(i).getTipo().getTamano();
+                                                }
+                                                t_simbolos.getTabla("Principal").get_id(id).getTipo().setTamano(tamano);:}end espacio type {: :}
+                    ;
+
+CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve INDENTACION2 CONTENIDO_ESTRUCTURA:ce {::}
+               |newline INDENTACION2 {::}
+               |newline INDENTACION2 CONTENIDO_ESTRUCTURA:ce {::}
+               |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {::}
+               ;
+DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), nueva_estructura)){
+                                                t_simbolos.getTabla(nueva_estructura).add_id(new Token(id,t, idleft, idright, remover(ambito_actual),offset));
+                                                 offset+= t.getTamano();
+                                           }else{
+                                                error_ambito(id, idleft, idright);
+                                           }:}
+                                 ;
+
+BLOQUE_LECTURA::=identificador:id espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {::}
+                 |identificador:id punto identificador:id2 espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {::}
+                 |console punto read abrirparentesis cerrarparentesis {::}
+                 ;
+
+BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {::}
+                 ;
+
+BLOQUE_COMENTARIOS::=comentario:c {::}
+                     ;
+
+
+
+
+
+
+

@@ -16,11 +16,11 @@ public class JavaSymbol extends java_cup.runtime.Symbol {
  
 
   public JavaSymbol(int type, int line, int column, String text) {
-    this(type, line, column, -1, -1, text, null);
+    this(type, line, column, line,column, text, null);
   }
 
   public JavaSymbol(int type, int line, int column, String text, Object value) {
-    this(type, line, column, -1, -1, text, value);
+    this(type, line, column, line, column, text, value);
   }
 
   public JavaSymbol(int type, int line, int column, int left, int right, String text, Object value) {

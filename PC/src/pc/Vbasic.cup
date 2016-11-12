@@ -3,29 +3,11 @@ import java_cup.runtime.*;
 import java_cup.runtime.Symbol;
 import pc.treeelements.*;
 import java.util.ArrayList;
+import pc.Tipos.*;
 
 parser code {:
-     public static int errors = 0;
-
-public void report_error(String message, Object info) {
-    if (info instanceof String){
-	errors++; 
-      /*System.err.println( info + " "+ message);*/
+    public void report_error(String message, Object info) {
     }
-    else {
-    	StringBuffer m = new StringBuffer("Error ");
-    	if (info instanceof java_cup.runtime.Symbol) 
-     	   m.append( "("+info.toString()+")" );     
-    	m.append(" : "+message);   
-    	System.err.println(m);
-    }
-  }
-   
-  public void report_fatal_error() {
-    //report_error(message, info);
-    throw new RuntimeException("Fatal Syntax Error");
-  }
-
     public Programa programaT;
 
 :};
@@ -88,17 +70,16 @@ precedence left opmult;
 precedence left not, oplog;
 
 INICIO::=PROGRAMA:p {:programaT = p;:}
-         |newline PROGRAMA:p {:RESULT = p; :}
+         |newline PROGRAMA:p {:RESULT = p; programaT = p;:}
          ;
 
 PROGRAMA::=INDENTACION PROGRAMA:p {:RESULT = p;:}
            |INDENTACION PROGRAMA2:p2 {:RESULT = p2;:}
-           |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {:RESULT=p2; RESULT.addNode(bp);:}
+           |BLOQUE_PROCEDIMIENTO:bp INDENTACION2 PROGRAMA2:p2 {:RESULT=p2; RESULT.addNode(bp); :}
            |BLOQUE_FUNCION:bf INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addNode(bf);:}
            |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addNode(be);:}
            |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addListNode(dv); :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {:RESULT = p2; RESULT.addNode(bc);:}
-           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
 PROGRAMA2::=newline PROGRAMA:p {:RESULT = p;:}
             |newline {:RESULT = new Programa("Programa");:}
@@ -159,7 +140,7 @@ TIPOS::=tipovar:tv {:RESULT = new Node(tv);:}
           |identificador:id  {:RESULT = new Node(id);:}
           ;
 
-BLOQUE_PROCEDIMIENTO::=sub espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs); :}
                        |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
                 ;
 
@@ -188,18 +169,18 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                     ;   
 
 
-EXP::=  EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2);:}
+EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2);:}
        |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);:}
        |VALORES:v INDENTACION2 {:RESULT =  v;:}
        |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v);:}
        ;
 
 VALORES::=identificador:id {:RESULT = new Exp(id); :}
-          |truefalse:tf {:RESULT = new Exp(tf); :}
-          |numero:n {:RESULT = new Exp(n); :}
-          |cadena:c {:RESULT = new Exp(c); :}
+          |truefalse:tf {:RESULT = new Exp(tf); RESULT.setTipo_tabla(new booleant()); :}
+          |numero:n {:RESULT = new Exp(n); RESULT.setTipo_tabla(new integert()); :}
+          |cadena:c {:RESULT = new Exp(c);  RESULT.setTipo_tabla(new stringt()); :}
           |identificador:id punto identificador:id2 {:RESULT = new Exp(id+"."+id2); :}
-          |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; :}
+          |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; RESULT.setTipo_tabla(e.getTipo_tabla());:}
           |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf;:}
           ;
 

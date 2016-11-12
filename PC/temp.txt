@@ -1,3 +1,10 @@
-Sub m()
-a = b + 3 * (2 + e)
-End Sub
+sub m()
+dim f as integer
+
+if 5 > 6 then
+dim l as string
+end if
+
+dim g as boolean
+dim l as string
+end sub

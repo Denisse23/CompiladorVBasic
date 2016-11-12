@@ -20,6 +20,9 @@ import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import pc.Tipos.Tipo;
+import pc.Tipos.integert;
+import pc.treeelements.*;
 
 /**
  *
@@ -31,6 +34,7 @@ public class Ventana extends javax.swing.JFrame {
      * Creates new form Ventana
      */
     File f;
+
     public Ventana() {
         initComponents();
     }
@@ -51,6 +55,7 @@ public class Ventana extends javax.swing.JFrame {
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jButton4 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -80,11 +85,23 @@ public class Ventana extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Tabla_Simbolos");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(41, 41, 41)
+                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel1Layout.createSequentialGroup()
                     .addGap(0, 38, Short.MAX_VALUE)
@@ -95,13 +112,16 @@ public class Ventana extends javax.swing.JFrame {
                             .addComponent(txtFile, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(10, 10, 10)
                             .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 850, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 850, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGap(0, 38, Short.MAX_VALUE)))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 320, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(0, 289, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel1Layout.createSequentialGroup()
                     .addGap(0, 0, Short.MAX_VALUE)
@@ -111,9 +131,7 @@ public class Ventana extends javax.swing.JFrame {
                         .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGap(10, 10, 10)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, 0)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 40, Short.MAX_VALUE)))
         );
 
         jPanel2.setName(""); // NOI18N
@@ -154,28 +172,29 @@ public class Ventana extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(31, 31, 31)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(6, 6, 6)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    TablasDeSimbolos tds;
+    Programa ArbolAbstracto;
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-            txtaCodigo.setText("");
-            DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
-            model.setRoot(new DefaultMutableTreeNode("root"));
-            this.tree.setModel(model);
-            try{    
+        txtaCodigo.setText("");
+        DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
+        model.setRoot(new DefaultMutableTreeNode("root"));
+        this.tree.setModel(model);
+        try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintStream ps = new PrintStream(baos);
             // IMPORTANT: Save the old System.out!
@@ -187,50 +206,63 @@ public class Ventana extends javax.swing.JFrame {
             BufferedWriter bw = new BufferedWriter(new FileWriter(archivo));
             bw.write(this.jTextArea1.getText());
             bw.close();
-            Lexer scanner = new Lexer( new FileReader(archivo));
-            try{
-            parser p = new parser(scanner);
-            p.parse();
-            try{
-                DefaultTreeModel model1 = (DefaultTreeModel) this.tree.getModel();
-                model1.setRoot(p.programaT.toNodeP());
-                this.tree.setModel(model1);
-            }catch (Exception e){
+            Lexer scanner = new Lexer(new FileReader(archivo));
+            Lexer scanner2 = new Lexer(new FileReader(archivo));
+            try {
+              Vbasicsintaxis  p = new Vbasicsintaxis(scanner);
+                p.parse();
+                tds = p.t_simbolos;
+                if (p.errors_count==0) {
+                   Vbasictipos vt = new Vbasictipos(scanner2);
+                    vt.parse();
+                    ArbolAbstracto = vt.programaT;
+                    try {
+                        DefaultTreeModel model1 = (DefaultTreeModel) this.tree.getModel();
+                        model1.setRoot(ArbolAbstracto.toNodeP());
+                        this.tree.setModel(model1);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+               }
+            } catch (Exception e) {
                 System.out.println(e);
             }
-            }catch (Exception e){
-                System.out.println(e);
-            }
-            
+
             txtaCodigo.setText(baos.toString());
             System.err.flush();
             System.setErr(old);
             System.err.flush();
             txtaCodigo.append("\nAnalisis Finalizado, Gracias Diosito ✞\n");
-            }catch (Exception e){
-                System.out.println(e);
-            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-       JFileChooser chooser = new JFileChooser();
-        chooser.showDialog(jPanel1,"Accept");
+        JFileChooser chooser = new JFileChooser();
+        chooser.showDialog(jPanel1, "Accept");
         f = chooser.getSelectedFile();
         txtFile.setText(f.toString());
-        try{
+        try {
             List<String> content = Files.readAllLines(f.toPath());
             String texto = "";
-            for(int i=0;i<content.size();i++){
-                texto+= content.get(i)+"\n";
+            for (int i = 0; i < content.size(); i++) {
+                texto += content.get(i) + "\n";
             }
             jTextArea1.setText(texto);
-        }catch( Exception e)
-        {
-            
+        } catch (Exception e) {
+
         }
     }//GEN-LAST:event_jButton5ActionPerformed
-    
-    
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if(tds!=null){
+            VentanaTablaSimbolos tbs = new VentanaTablaSimbolos(tds);
+            tbs.setVisible(true);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -268,6 +300,7 @@ public class Ventana extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel2;

@@ -5,6 +5,7 @@
  */
 package pc.treeelements;
 
+import pc.Tipos.Tipo;
 import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -16,10 +17,12 @@ public class Node {
     
     String val;
     ArrayList<Node> hijos;
+    Tipo tipo_tabla;
    
     public Node(String v ){
         val= v;
         hijos = new ArrayList();
+      
     }
     
     public void addNode(Node n){
@@ -37,6 +40,16 @@ public class Node {
     public String getVal(){
         return val;
     }
+
+    public Tipo getTipo_tabla() {
+        return tipo_tabla;
+    }
+
+    public void setTipo_tabla(Tipo tipo_tabla) {
+        this.tipo_tabla = tipo_tabla;
+    }
+    
+    
     
     public boolean isLeaf(){
         if(hijos.size()==0)
@@ -44,6 +57,9 @@ public class Node {
         else
             return false;
     }
+    
+    
+    
     
     public void toNode(DefaultMutableTreeNode dmtn){
         DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
