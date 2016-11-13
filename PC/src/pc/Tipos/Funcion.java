@@ -18,6 +18,7 @@ public class Funcion extends Tipo{
     
     public Funcion(){
         this.setName("Proc");
+        Params = new ArrayList();
     }
     
     public void setRetorno(Tipo r){

@@ -214,6 +214,7 @@ public class Ventana extends javax.swing.JFrame {
                 tds = p.t_simbolos;
                 if (p.errors_count==0) {
                    VbasicTiposArbol vt = new VbasicTiposArbol(scanner2);
+                    vt.setTablasDeSimbolos(tds);
                     vt.parse();
                     ArbolAbstracto = vt.programaT;
                     try {

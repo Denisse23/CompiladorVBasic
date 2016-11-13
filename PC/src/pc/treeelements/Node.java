@@ -5,7 +5,7 @@
  */
 package pc.treeelements;
 
-import pc.Tipos.Tipo;
+import pc.Tipos.*;
 import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -22,6 +22,7 @@ public class Node {
     public Node(String v ){
         val= v;
         hijos = new ArrayList();
+        tipo_tabla = new voidt();
       
     }
     

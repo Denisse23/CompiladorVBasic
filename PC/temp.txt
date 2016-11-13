@@ -1,12 +1,18 @@
-type o
- z as integer
-end type
-
 type e
-w as string
+a as integer
+b as string
+c as boolean
 end type
 
 sub main()
-dim i as e
-i.a = 5 + 6
+
 end sub
+
+
+function s(byval k as string, byval r as integer)
+
+end function
+
+function s1(byval k as string, byval r as integer) as string
+
+end function

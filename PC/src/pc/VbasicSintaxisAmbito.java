@@ -838,7 +838,7 @@ public void report_error(String message, Object info) {
 
     public void error_ambito(String id, int line, int column){
         errors_count++;
-        System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito): Semantic error");
+        System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito o es el nombre de un procedimiento-función): Semantic error");
     }
 
     public void error_ambito_id_no_es_registro (String id, int line, int column){
@@ -938,8 +938,6 @@ public void report_error(String message, Object info) {
          }
          
      }
-  
-
 
 
 
@@ -1780,8 +1778,8 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).right;
 		Tipo t = (Tipo)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).value;
-  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual) ,offset));
+  if(!t_simbolos.existe_id_var_proc(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, "", remover(ambito_actual) ,offset));
                                                  offset+= t.getTamano();
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -1817,8 +1815,8 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).right;
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).value;
-  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id, new integert(), idleft, idright, remover(ambito_actual),-1));
+  if(!t_simbolos.existe_id_var_proc(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id, new integert(), idleft, idright,"", remover(ambito_actual),-1));
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }
@@ -1856,8 +1854,8 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		Tipo t = (Tipo)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual),-1));
+		  if(!t_simbolos.existe_id_var_proc(id,remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"", remover(ambito_actual),-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -1914,7 +1912,7 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-2)).value;
  if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Funcion();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t , idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t , idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -1938,7 +1936,10 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int csleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int csright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cs = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_PROCEDIMIENTO",9, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -1952,7 +1953,7 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-1)).value;
  if(!t_simbolos.existe_id(id, "1", "Principal")){
                                                 Tipo t = new Funcion();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -1972,11 +1973,16 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-9)).value;
 		int lpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).left;
 		int lpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).right;
-		ArrayList<Node> lp = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
+		ArrayList<Tipo> lp = (ArrayList<Tipo>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
 		int csleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int csright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cs = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-		
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                     for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_PROCEDIMIENTO",9, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-11)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -1984,7 +1990,7 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 75: // LISTA_PARAMENTROS ::= tipoparametro espacio identificador espacio as espacio tipovar 
             {
-              ArrayList<Node> RESULT =null;
+              ArrayList<Tipo> RESULT =null;
 		int tpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).left;
 		int tpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).right;
 		String tp = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
@@ -1994,21 +2000,23 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		String t = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+		 
                                                 Tipo n;
-                                                if(t.equals("String")){
+                                                if(t.equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("Integer")){
+                                                }else if(t.equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
                                                 }
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,remover(ambito_actual),-1));
+                                                if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,"",remover(ambito_actual),-1));
                                                 t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
                                                 t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }
+                                           RESULT = new ArrayList();RESULT.add(n);
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("LISTA_PARAMENTROS",10, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2016,7 +2024,7 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 76: // NT$25 ::= 
             {
-              ArrayList<Node> RESULT =null;
+              ArrayList<Tipo> RESULT =null;
 		int tpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).left;
 		int tpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).right;
 		String tp = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
@@ -2026,21 +2034,24 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		String t = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
-                                                Tipo n;
-                                                if(t.equals("String")){
+  
+                                             Tipo n;
+                                                if(t.equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("Integer")){
+                                                }else if(t.equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
                                                 }
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, remover(ambito_actual),-1));
+                                            if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, "",remover(ambito_actual),-1));
                                                 t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
                                                 t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }
+                                           
+                                           
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$25",67, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2048,9 +2059,9 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 77: // LISTA_PARAMENTROS ::= tipoparametro espacio identificador espacio as espacio tipovar NT$25 coma espacio LISTA_PARAMENTROS 
             {
-              ArrayList<Node> RESULT =null;
+              ArrayList<Tipo> RESULT =null;
               // propagate RESULT from NT$25
-                RESULT = (ArrayList<Node>) ((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
+                RESULT = (ArrayList<Tipo>) ((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
 		int tpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).left;
 		int tpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).right;
 		String tp = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).value;
@@ -2062,8 +2073,17 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String t = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-4)).value;
 		int lpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int lpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
-		ArrayList<Node> lp = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		
+		ArrayList<Tipo> lp = (ArrayList<Tipo>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
+		Tipo n;
+                                                if(t.equals("string")){
+                                                    n = new stringt();
+                                                }else if(t.equals("integer")){
+                                                    n = new integert();
+                                                }else{
+                                                    n = new booleant();
+                                                }
+                                                RESULT=lp; RESULT.add(n);
+                                                
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("LISTA_PARAMENTROS",10, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2072,16 +2092,24 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           case 78: // BLOQUE_FUNCION ::= function espacio CODIGO_FUNCION abrirparentesis LISTA_PARAMENTROS cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function 
             {
               Stmt_Funcion RESULT =null;
+		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-12)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-12)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-12)).value;
 		int lpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).left;
 		int lpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).right;
-		ArrayList<Node> lp = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).value;
+		ArrayList<Tipo> lp = (ArrayList<Tipo>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)).value;
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).right;
 		Tipo t = (Tipo)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).value;
 		int cfleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int cfright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cf = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-		
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(t);
+                                                                                                      for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_FUNCION",7, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-14)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2090,13 +2118,20 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           case 79: // BLOQUE_FUNCION ::= function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis espacio as espacio TIPOS INDENTACION2 CONTENIDO_FUNCTION end espacio function 
             {
               Stmt_Funcion RESULT =null;
+		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-11)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-11)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-11)).value;
 		int tleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).left;
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).right;
 		Tipo t = (Tipo)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-5)).value;
 		int cfleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int cfright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cf = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-		
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(t);
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                                    
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_FUNCION",7, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-13)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2105,10 +2140,17 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           case 80: // BLOQUE_FUNCION ::= function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function 
             {
               Stmt_Funcion RESULT =null;
+		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-7)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-7)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-7)).value;
 		int csleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int csright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cs = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-		
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                                    
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_FUNCION",7, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-9)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2117,13 +2159,21 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
           case 81: // BLOQUE_FUNCION ::= function espacio CODIGO_FUNCION abrirparentesis LISTA_PARAMENTROS cerrarparentesis INDENTACION2 CONTENIDO_SUB end espacio function 
             {
               Stmt_Funcion RESULT =null;
+		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-8)).left;
+		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-8)).right;
+		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-8)).value;
 		int lpleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).left;
 		int lpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).right;
-		ArrayList<Node> lp = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
+		ArrayList<Tipo> lp = (ArrayList<Tipo>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-6)).value;
 		int csleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).left;
 		int csright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).right;
 		ArrayList<Node> cs = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-3)).value;
-		
+		 if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                      for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_FUNCION",7, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-10)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -3798,7 +3848,7 @@ remover_ambito();offset=stack_offset.pop();
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
  if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Registro();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 t_simbolos.addTabla(new TablaSimbolos(id));
                                                 nueva_estructura = id;
                                             }else{
@@ -3840,7 +3890,12 @@ remover_ambito();offset=stack_offset.pop();
 		int celeft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-4)).left;
 		int ceright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-4)).right;
 		ArrayList<Node> ce = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-4)).value;
-		 
+		
+                                                    for(int i=0; i<t_simbolos.getTabla(id).get_ids().size();i++){
+                                                        ((Registro)t_simbolos.getTabla("Principal").get_id(id).getTipo()).addVar(t_simbolos.getTabla(id).get_ids().get(i).getId(),
+                                                          t_simbolos.getTabla(id).get_ids().get(i).getTipo());
+                                                    }
+                                                 
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("BLOQUE_ESTRUCTURA",33, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-9)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -3907,7 +3962,7 @@ remover_ambito();offset=stack_offset.pop();
 		int tright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		Tipo t = (Tipo)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
 		  if(!t_simbolos.existe_id(id, remover(ambito_actual), nueva_estructura)){
-                                                t_simbolos.getTabla(nueva_estructura).add_id(new Token(id,t, idleft, idright, remover(ambito_actual),offset));
+                                                t_simbolos.getTabla(nueva_estructura).add_id(new Token(id,t, idleft, idright,"", remover(ambito_actual),offset));
                                                  offset+= t.getTamano();
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -4015,13 +4070,14 @@ if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 216: // CODIGO_FUNCION ::= identificador 
             {
-              Object RESULT =null;
+              String RESULT =null;
 		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		 if(!t_simbolos.existe_id(id,"1", "Principal")){
+		  RESULT=id;
+                                       if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Funcion();
-                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);

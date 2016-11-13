@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import pc.Tipos.*;
 
 parser code {:
-    public void report_error(String message, Object info) {
+    TablasDeSimbolos tds;
+    public void setTablasDeSimbolos(TablasDeSimbolos t){
+        tds=t;
     }
     public Programa programaT;
+    public String ambito_actual="1";
 
 :};
 
@@ -141,10 +144,10 @@ TIPOS::=tipovar:tv {:RESULT = new Node(tv);:}
           |identificador:id  {:RESULT = new Node(id);:}
           ;
 
-BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs); :}
-                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs); :}
+                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
                 ;
-
+ 
 LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:RESULT = new ArrayList(); RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
                     |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
                     ;

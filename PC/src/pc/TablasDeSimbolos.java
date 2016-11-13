@@ -55,6 +55,21 @@ public class TablasDeSimbolos {
 
         return esta;
     }
+    
+    public boolean existe_id_var_proc(String id, String ambito, String nametabla) {
+        boolean esta = false;
+        TablaSimbolos t = getTabla(nametabla);
+        for (int j = 0; j < t.get_ids().size(); j++) {
+            if ((t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(ambito)) || 
+                (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getTipo().getName().equals("Proc"))) {
+                esta = true;
+                break;
+            }
+
+        }
+
+        return esta;
+    }
 
     public boolean hay_main() {
         boolean esta = false;
@@ -193,6 +208,30 @@ public class TablasDeSimbolos {
         
         Object[] o = {esta, var_o_registro, name_registro, name_id,id_no_encontrada,name_registro_pertenece_name_id};
         return o;
+    }
+
+
+
+
+
+////////////////////METODOS A USAR CUANDO YA SE HA COMPROBADO EL AMIBTO Y EXISTENCIA DE LOS IDENTIFICADORES////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public String get_ambito_hijos_id(String id) {
+        String enviar = "";
+        TablaSimbolos t = getTabla("Principal");
+            for (int j = 0; j < t.get_ids().size(); j++) {
+                    if (t.get_ids().get(j).getId().equals(id)) {
+                        enviar = t.get_ids().get(j).getHijos();
+                        break;
+                    }
+
+            }
+           
+        return enviar;
     }
 
 }

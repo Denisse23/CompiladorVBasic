@@ -32,7 +32,7 @@ public void report_error(String message, Object info) {
 
     public void error_ambito(String id, int line, int column){
         errors_count++;
-        System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito): Semantic error");
+        System.err.println("Error (line: "+line+", column: "+column+",  el identificador: "+id+" ya existe dentro del mismo ambito o es el nombre de un procedimiento-función): Semantic error");
     }
 
     public void error_ambito_id_no_es_registro (String id, int line, int column){
@@ -132,8 +132,6 @@ public void report_error(String message, Object info) {
          }
          
      }
-  
-
 
 :};
 
@@ -156,7 +154,7 @@ non terminal Tipo DECLARACION_VARIABLE2;
 non terminal Stmt_Funcion BLOQUE_FUNCION;
 non terminal Stmt_Llamada_Funcion BLOQUE_LLAMADAS_FUNCIONES;
 non terminal Stmt_Procedimiento BLOQUE_PROCEDIMIENTO;
-non terminal ArrayList<Node> LISTA_PARAMENTROS;
+non terminal ArrayList<Tipo> LISTA_PARAMENTROS;
 non terminal ArrayList<Node> CONTENIDO_SUB;
 non terminal ArrayList<Node> CONTENIDO_FUNCTION;
 non terminal Stmt_Return BLOQUE_RETURN;
@@ -187,7 +185,7 @@ non terminal Stmt_Escritura BLOQUE_ESCRITURA;
 non terminal Stmt_Comentario BLOQUE_COMENTARIOS;
 non terminal String ELEMENTOS_ESTRUCTUA;
 non terminal CODIGO_ELEMENTOS_ESTRUCTUA;
-non terminal CODIGO_FUNCION;
+non terminal String CODIGO_FUNCION;
 
 
 
@@ -259,19 +257,19 @@ INDENTACION::=tab
 DECLARACION_VARIABLE::=dim {:index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();:} espacio DECLARACION_VARIABLE2:dv2 {: asignar_offset_ids();:}
                        ;
 
-DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual) ,offset));
+DECLARACION_VARIABLE2::=identificador:id espacio as espacio TIPOS:t coma espacio {:  if(!t_simbolos.existe_id_var_proc(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, "", remover(ambito_actual) ,offset));
                                                  offset+= t.getTamano();
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }:} DECLARACION_VARIABLE2:dv2  {::}
-                               |identificador:id coma  espacio {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id, new integert(), idleft, idright, remover(ambito_actual),-1));
+                               |identificador:id coma  espacio {:  if(!t_simbolos.existe_id_var_proc(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id, new integert(), idleft, idright,"", remover(ambito_actual),-1));
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }:} DECLARACION_VARIABLE2:dv2 
-                               |identificador:id  espacio as:as espacio TIPOS:t {:  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright, remover(ambito_actual),-1));
+                               |identificador:id  espacio as:as espacio TIPOS:t {:  if(!t_simbolos.existe_id_var_proc(id,remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"", remover(ambito_actual),-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -300,56 +298,96 @@ TIPOS::=tipovar:tv {: if(tv.toLowerCase().equals("string")){RESULT = new stringt
 
 BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis {: if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Funcion();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t , idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t , idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
-                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub
+                                           } :} INDENTACION2 CONTENIDO_SUB:cs end espacio sub {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                              } :}
                        |sub espacio identificador:id abrirparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
                                                 Tipo t = new Funcion();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);
-                                           } :} LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {::}
+                                           } :} LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio sub  {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                     for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } :}
                 ;
 
-LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {: 
                                                 Tipo n;
-                                                if(t.equals("String")){
+                                                if(t.equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("Integer")){
+                                                }else if(t.equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
                                                 }
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,remover(ambito_actual),-1));
+                                                if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,"",remover(ambito_actual),-1));
                                                 t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
                                                 t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
-                                           }:}
-                    |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
-                                                Tipo n;
-                                                if(t.equals("String")){
+                                           }
+                                           RESULT = new ArrayList();RESULT.add(n);:}
+                    |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  
+                                             Tipo n;
+                                                if(t.equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("Integer")){
+                                                }else if(t.equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
                                                 }
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, remover(ambito_actual),-1));
+                                            if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, "",remover(ambito_actual),-1));
                                                 t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
                                                 t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
-                                           }:}coma espacio LISTA_PARAMENTROS:lp {::}
+                                           }
+                                           
+                                           :}coma espacio LISTA_PARAMENTROS:lp {:Tipo n;
+                                                if(t.equals("string")){
+                                                    n = new stringt();
+                                                }else if(t.equals("integer")){
+                                                    n = new integert();
+                                                }else{
+                                                    n = new booleant();
+                                                }
+                                                RESULT=lp; RESULT.add(n);
+                                                :}
                     ;
 
-BLOQUE_FUNCION::=function espacio CODIGO_FUNCION abrirparentesis  LISTA_PARAMENTROS:lp  cerrarparentesis espacio as espacio TIPOS:t  INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {::}
-                 |function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function {::}
-                 |function espacio CODIGO_FUNCION abrirparentesis cerrarparentesis   INDENTACION2 CONTENIDO_SUB:cs end espacio function {::}
-                 |function espacio CODIGO_FUNCION abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  INDENTACION2 CONTENIDO_SUB:cs end espacio function  {::}
+BLOQUE_FUNCION::=function espacio CODIGO_FUNCION:id abrirparentesis  LISTA_PARAMENTROS:lp  cerrarparentesis espacio as espacio TIPOS:t  INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(t);
+                                                                                                      for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } :}
+                 |function espacio CODIGO_FUNCION:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 CONTENIDO_FUNCTION:cf end espacio function  {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(t);
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                                    
+                                                                                              } :}
+                 |function espacio CODIGO_FUNCION:id abrirparentesis cerrarparentesis   INDENTACION2 CONTENIDO_SUB:cs end espacio function {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(new voidt());
+                                                                                                    
+                                                                                              } :}
+                 |function espacio CODIGO_FUNCION:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis  INDENTACION2 CONTENIDO_SUB:cs end espacio function   {: if(t_simbolos.get_id_ambitos(id,"1", "Principal")!=null){
+                                                                                                    ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).setRetorno(new voidt());
+                                                                                                      for(int i=lp.size()-1;i>=0;i--){
+                                                                                                        ((Funcion)t_simbolos.get_id_ambitos(id,"1", "Principal").getTipo()).addParametro(lp.get(i));
+                                                                                                    }
+                                                                                              } :}
           ;
 
 BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {: if(!t_simbolos.existe_id(id, "1", "Principal")){
@@ -512,7 +550,7 @@ CONTENIDO_WHILE_FUNCTION::=newline INDENTACION2 BLOQUE_LECTURA:bl INDENTACION2  
 
 BLOQUE_ESTRUCTURA::=type espacio identificador:id {: if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Registro();
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 t_simbolos.addTabla(new TablaSimbolos(id));
                                                 nueva_estructura = id;
                                             }else{
@@ -522,7 +560,13 @@ BLOQUE_ESTRUCTURA::=type espacio identificador:id {: if(!t_simbolos.existe_id(id
                                                 for(int i=0; i<t_simbolos.getTabla(id).get_ids().size();i++){
                                                     tamano+=t_simbolos.getTabla(id).get_ids().get(i).getTipo().getTamano();
                                                 }
-                                                t_simbolos.getTabla("Principal").get_id(id).getTipo().setTamano(tamano);:}end espacio type {: :}
+                                                t_simbolos.getTabla("Principal").get_id(id).getTipo().setTamano(tamano);:}
+                                                end espacio type {:
+                                                    for(int i=0; i<t_simbolos.getTabla(id).get_ids().size();i++){
+                                                        ((Registro)t_simbolos.getTabla("Principal").get_id(id).getTipo()).addVar(t_simbolos.getTabla(id).get_ids().get(i).getId(),
+                                                          t_simbolos.getTabla(id).get_ids().get(i).getTipo());
+                                                    }
+                                                 :}
                     ;
 
 CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve INDENTACION2 CONTENIDO_ESTRUCTURA:ce {::}
@@ -531,7 +575,7 @@ CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve 
                |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {::}
                ;
 DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:  if(!t_simbolos.existe_id(id, remover(ambito_actual), nueva_estructura)){
-                                                t_simbolos.getTabla(nueva_estructura).add_id(new Token(id,t, idleft, idright, remover(ambito_actual),offset));
+                                                t_simbolos.getTabla(nueva_estructura).add_id(new Token(id,t, idleft, idright,"", remover(ambito_actual),offset));
                                                  offset+= t.getTamano();
                                            }else{
                                                 error_ambito(id, idleft, idright);
@@ -566,9 +610,10 @@ CODIGO_ELEMENTOS_ESTRUCTUA::=ELEMENTOS_ESTRUCTUA:ee {: Object[] ob = t_simbolos.
                                             }
                                         }
                                      }:};
-CODIGO_FUNCION::=identificador:id {: if(!t_simbolos.existe_id(id,"1", "Principal")){
+CODIGO_FUNCION::=identificador:id {:  RESULT=id;
+                                       if(!t_simbolos.existe_id(id,"1", "Principal")){
                                                 Tipo t = new Funcion();
-                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,"1",-1));
+                                            t_simbolos.getTabla("Principal").add_id(new Token(id,t, idleft, idright,remover(ambito_actual),"1",-1));
                                                 
                                            }else{
                                                 error_ambito(id, idleft, idright);

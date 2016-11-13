@@ -15,6 +15,7 @@ public class Registro extends Tipo{
     private ArrayList<String> vars;
     public Registro(){
        this.setName("Record");
+       vars = new ArrayList();
     }
     
     public void addVar(String id, Tipo p){
@@ -26,9 +27,9 @@ public class Registro extends Tipo{
         String con ="record(";
         for(int i=0; i<vars.size();i++){
             if(i==0)
-                con+=vars.size();
+                con+=vars.get(i);
             else
-                con+="X"+vars.size();
+                con+="X"+vars.get(i);
         }
         return con+")";
     }

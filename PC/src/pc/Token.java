@@ -16,16 +16,18 @@ public class Token {
     private Tipo tipo;
     private int linea;
     private int columna;
+    private String hijos;
     private String ambito;
     private int offset;
     private boolean isParametro;
     private String tipoParametro;
     
-    public Token(String id,Tipo tipo, int linea, int columna, String ambito, int offset){
+    public Token(String id,Tipo tipo, int linea, int columna, String hijos,String ambito, int offset){
         this.id = id;
         this.tipo = tipo;
         this.linea = linea;
         this.columna = columna;
+        this.hijos = hijos;
         this.ambito = ambito;
         this.offset = offset;
         this.isParametro = false;
@@ -95,6 +97,15 @@ public class Token {
     public void setTipoParametro(String tipoParametro) {
         this.tipoParametro = tipoParametro;
     }
+
+    public String getHijos() {
+        return hijos;
+    }
+
+    public void setHijos(String hijos) {
+        this.hijos = hijos;
+    }
+
     
     
     

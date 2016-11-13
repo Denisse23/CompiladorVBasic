@@ -30,7 +30,7 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
                 Object[] o1 = {tbs.tablas.get(k).name};
                 model1.addRow(o1);
                 for (int i = 0; i < tbs.tablas.get(k).get_ids().size(); i++) {
-                    Object[] o = {tbs.tablas.get(k).get_ids().get(i).getId(),tbs.tablas.get(k).get_ids().get(i).getTipo().getName(), tbs.tablas.get(k).get_ids().get(i).getLinea(), tbs.tablas.get(k).get_ids().get(i).getColumna(), tbs.tablas.get(k).get_ids().get(i).getAmbito()
+                    Object[] o = {tbs.tablas.get(k).get_ids().get(i).getId(),tbs.tablas.get(k).get_ids().get(i).getTipo().getName(),tbs.tablas.get(k).get_ids().get(i).getTipo().toString(), tbs.tablas.get(k).get_ids().get(i).getLinea(), tbs.tablas.get(k).get_ids().get(i).getColumna(),tbs.tablas.get(k).get_ids().get(i).getAmbito(),tbs.tablas.get(k).get_ids().get(i).getHijos()
                     ,tbs.tablas.get(k).get_ids().get(i).getOffset(),tbs.tablas.get(k).get_ids().get(i).isIsParametro()};
 
                     model1.addRow(o);
@@ -64,11 +64,11 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Id", "Tipo", "Line", "Column", "Ambito", "Offset", "EsParametro"
+                "Id", "Tipo name", "Tipo", "Line", "Column", "Ambito", "Hijos", "Offset", "EsParametro"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Integer.class, java.lang.Boolean.class
+                java.lang.String.class, java.lang.Object.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Boolean.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -76,6 +76,9 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
             }
         });
         jScrollPane1.setViewportView(jt_tablasimbolos);
+        if (jt_tablasimbolos.getColumnModel().getColumnCount() > 0) {
+            jt_tablasimbolos.getColumnModel().getColumn(2).setResizable(false);
+        }
 
         jButton1.setText("Salir");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -89,11 +92,14 @@ public class VentanaTablaSimbolos extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(26, 26, 26)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton1)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 664, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(31, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(26, 26, 26)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 748, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
