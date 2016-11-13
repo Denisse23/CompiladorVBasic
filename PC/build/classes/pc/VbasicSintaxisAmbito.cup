@@ -45,11 +45,6 @@ public void report_error(String message, Object info) {
         System.err.println("Error (line: "+line+", column: "+column+",  la funcion o procedimiento: "+id+" no ha sido declarado): Semantic error");
     }
 
-    public void error_no_main(){
-        errors_count++;
-        System.err.println("Error (No se encontro el procedimiento main): Semantic error");
-    }
-
     public void error_var_o_type_global(){
         errors_count++;
         System.err.println("Error (Solamente se permiten comentarios después de una función o procedimiento): Semantic error");
@@ -195,8 +190,8 @@ precedence left opmult;
 
 precedence left not, oplog;
 
-INICIO::= PROGRAMA:p {: if(!t_simbolos.hay_main()){ error_no_main();}:}
-         |newline PROGRAMA:p {:if(!t_simbolos.hay_main()){ error_no_main();}:}
+INICIO::= PROGRAMA:p {::}
+         |newline PROGRAMA:p {::}
          ;
 
 PROGRAMA::=INDENTACION PROGRAMA:p {::}
@@ -322,9 +317,9 @@ BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarpare
 
 LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {: 
                                                 Tipo n;
-                                                if(t.equals("string")){
+                                                if(t.toLowerCase().equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("integer")){
+                                                }else if(t.toLowerCase().equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
@@ -339,9 +334,9 @@ LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio
                                            RESULT = new ArrayList();RESULT.add(n);:}
                     |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:  
                                              Tipo n;
-                                                if(t.equals("string")){
+                                                if(t.toLowerCase().equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("integer")){
+                                                }else if(t.toLowerCase().equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();

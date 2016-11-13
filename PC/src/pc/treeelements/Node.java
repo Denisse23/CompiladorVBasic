@@ -70,7 +70,7 @@ public class Node {
         DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);
         dmtn.add(nodo);
         if(!isLeaf()){
-            
+            //////////////se envian al reves, porque la entrada al arbol fue en orden inverso 
             for(int i=hijos.size()-1;i>=0;i--)
                 hijos.get(i).toNode(nodo);
         }

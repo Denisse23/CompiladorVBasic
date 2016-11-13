@@ -55,13 +55,13 @@ public class TablasDeSimbolos {
 
         return esta;
     }
-    
+
     public boolean existe_id_var_proc(String id, String ambito, String nametabla) {
         boolean esta = false;
         TablaSimbolos t = getTabla(nametabla);
         for (int j = 0; j < t.get_ids().size(); j++) {
-            if ((t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(ambito)) || 
-                (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getTipo().getName().equals("Proc"))) {
+            if ((t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(ambito))
+                    || (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getTipo().getName().equals("Proc"))) {
                 esta = true;
                 break;
             }
@@ -127,7 +127,8 @@ public class TablasDeSimbolos {
         String am = ambito;
         while (!am.equals("")) {
             for (int j = 0; j < t.get_ids().size(); j++) {
-                if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am)) {
+                if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am) &&
+                    !(t.get_ids().get(j).getTipo().getName().equals("Record"))) {
                     esta = true;
                     break;
                 }
@@ -150,11 +151,9 @@ public class TablasDeSimbolos {
                         enviar = t.get_ids().get(j);
                         break;
                     }
-                }else{
-                    if (t.get_ids().get(j).getId().equals(id) ) {
-                        enviar = t.get_ids().get(j);
-                        break;
-                    }
+                } else if (t.get_ids().get(j).getId().equals(id)) {
+                    enviar = t.get_ids().get(j);
+                    break;
                 }
 
             }
@@ -163,13 +162,13 @@ public class TablasDeSimbolos {
         }
         return enviar;
     }
-  
+
     public Object[] existe_id_estructura(String id, String ambito) {
         boolean esta = false;
         String var_o_registro = "var";
         String name_registro = "";
         String name_id = "";
-        String id_no_encontrada="";
+        String id_no_encontrada = "";
         String name_registro_pertenece_name_id = "";
         Token id_var = null;
         String[] ids = id.split("\\.");///////// buscar si existen los nombres de variables dentro de los registros(type)
@@ -177,14 +176,14 @@ public class TablasDeSimbolos {
             var_o_registro = "registro";
             id_var = get_id_ambitos(ids[0], ambito, "Principal");
             for (int i = 1; i < ids.length; i++) {
-                if(i==1){
+                if (i == 1) {
                     name_id = id_var.getId();
                     name_registro_pertenece_name_id = "--";
                     name_registro = id_var.getTipo().getName();
                 }
                 if (getTabla(id_var.getTipo().getName()) != null) {
                     name_registro_pertenece_name_id = id_var.getTipo().getName();
-                    if (get_id_ambitos(ids[i],"registro", id_var.getTipo().getName()) != null) {
+                    if (get_id_ambitos(ids[i], "registro", id_var.getTipo().getName()) != null) {
                         esta = true;
                         id_var = get_id_ambitos(ids[i], "registro", id_var.getTipo().getName());
                         name_id = id_var.getId();
@@ -195,42 +194,61 @@ public class TablasDeSimbolos {
                         break;
                     }
                 } else {
-                   
+
                     esta = false;
                     break;
                 }
-                 
-                
 
             }
 
         }
-        
-        Object[] o = {esta, var_o_registro, name_registro, name_id,id_no_encontrada,name_registro_pertenece_name_id};
+
+        Object[] o = {esta, var_o_registro, name_registro, name_id, id_no_encontrada, name_registro_pertenece_name_id};
         return o;
     }
-
-
-
-
 
 ////////////////////METODOS A USAR CUANDO YA SE HA COMPROBADO EL AMIBTO Y EXISTENCIA DE LOS IDENTIFICADORES////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-public String get_ambito_hijos_id(String id) {
+    public String get_ambito_hijos_id(String id) {
         String enviar = "";
         TablaSimbolos t = getTabla("Principal");
-            for (int j = 0; j < t.get_ids().size(); j++) {
-                    if (t.get_ids().get(j).getId().equals(id)) {
-                        enviar = t.get_ids().get(j).getHijos();
-                        break;
-                    }
-
+        for (int j = 0; j < t.get_ids().size(); j++) {
+            if (t.get_ids().get(j).getId().equals(id)) {
+                enviar = t.get_ids().get(j).getHijos();
+                break;
             }
-           
+
+        }
+
+        return enviar;
+    }
+
+    public Token get_id_estructura(String idcompuesta, String ambito_actual) {
+        Token enviar = null;
+        String[] ids = idcompuesta.split("\\.");///////// buscar si existen los nombres de variables dentro de los registros(type)
+
+        enviar = get_id_ambitos(ids[0], ambito_actual, "Principal");
+        for (int i = 1; i < ids.length; i++) {
+            enviar = get_id_ambitos(ids[i], "registro", enviar.getTipo().getName());
+        }
+
+        return enviar;
+    }
+    
+    public String get_id_segun_ambito_hijos(String ambito) {
+        String enviar = "";
+        TablaSimbolos t = getTabla("Principal");
+        for (int j = 0; j < t.get_ids().size(); j++) {
+            if (t.get_ids().get(j).getHijos().equals(ambito)) {
+                enviar = t.get_ids().get(j).getId();
+                break;
+            }
+
+        }
+
         return enviar;
     }
 

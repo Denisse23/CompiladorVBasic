@@ -1,6 +1,35 @@
-sub main(byval q as integer, byval b as integer, byref g as boolean)
-dim i as integer
-dim t as boolean
-i = "a"
-main(5 + 10 - 9 * 8, i * i + 6 * 4, t )
-end sub
+Type MiNuevoTipo
+	a As Integer
+	b As String
+	c As Integer
+End Type
+
+Function nuevo(ByVal j As Integer) As String
+	
+	If j = 0 Then
+		Return ""
+	Else
+		Return nuevo(2 * j - 1)
+	End If
+End Function
+
+Sub main(ByVal variable As Integer)
+	Dim r as MiNuevoTipo
+	Dim i As Integer
+	Console.Write(variable)
+
+	
+	
+	For i = 0 To variable
+		If r.a = 3 Then
+			Console.Write(nuevo(5))
+		End If
+	Next
+
+	i = Console.Read()
+
+	Do While r.a <= variable
+		Console.Write(i)
+	Loop
+
+End Sub

@@ -39,7 +39,7 @@ public class cmain {
         //Le decimos donde se encuentra el archivo .cup
         opciones1[4] = "src\\PC\\VbasicTiposArbol.cup";
         try {
-            //java_cup.Main.main(opciones);
+            java_cup.Main.main(opciones);
             java_cup.Main.main(opciones1);
         } catch (Exception e) {
             System.out.print(e);

@@ -23,14 +23,14 @@ public class sym {
   public static final int tipoparametro = 27;
   public static final int end = 13;
   public static final int opmult = 33;
-  public static final int read = 6;
   public static final int Return = 25;
+  public static final int read = 6;
   public static final int While = 24;
   public static final int numero = 40;
   public static final int then = 14;
-  public static final int sub = 2;
   public static final int For = 23;
   public static final int cerrarparentesis = 4;
+  public static final int sub = 2;
   public static final int console = 7;
   public static final int EOF = 0;
   public static final int abrirparentesis = 3;

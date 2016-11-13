@@ -851,11 +851,6 @@ public void report_error(String message, Object info) {
         System.err.println("Error (line: "+line+", column: "+column+",  la funcion o procedimiento: "+id+" no ha sido declarado): Semantic error");
     }
 
-    public void error_no_main(){
-        errors_count++;
-        System.err.println("Error (No se encontro el procedimiento main): Semantic error");
-    }
-
     public void error_var_o_type_global(){
         errors_count++;
         System.err.println("Error (Solamente se permiten comentarios después de una función o procedimiento): Semantic error");
@@ -972,7 +967,7 @@ class CUP$VbasicSintaxisAmbito$actions {
 		int pleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int pright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		Programa p = (Programa)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		 if(!t_simbolos.hay_main()){ error_no_main();}
+		
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("INICIO",0, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -998,7 +993,7 @@ class CUP$VbasicSintaxisAmbito$actions {
 		int pleft = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).left;
 		int pright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		Programa p = (Programa)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
-		if(!t_simbolos.hay_main()){ error_no_main();}
+		
               CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("INICIO",0, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.elementAt(CUP$VbasicSintaxisAmbito$top-1)), ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
@@ -2002,9 +1997,9 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String t = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
 		 
                                                 Tipo n;
-                                                if(t.equals("string")){
+                                                if(t.toLowerCase().equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("integer")){
+                                                }else if(t.toLowerCase().equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
@@ -2036,9 +2031,9 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		String t = (String)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
   
                                              Tipo n;
-                                                if(t.equals("string")){
+                                                if(t.toLowerCase().equals("string")){
                                                     n = new stringt();
-                                                }else if(t.equals("integer")){
+                                                }else if(t.toLowerCase().equals("integer")){
                                                     n = new integert();
                                                 }else{
                                                     n = new booleant();
