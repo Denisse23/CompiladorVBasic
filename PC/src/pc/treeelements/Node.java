@@ -34,6 +34,10 @@ public class Node {
             hijos.addAll(nodos);
     }
     
+    public ArrayList<Node> getListNode(){
+            return hijos;
+    }
+    
     public void setNodes(ArrayList<Node> nodos){
         hijos = nodos;
     }

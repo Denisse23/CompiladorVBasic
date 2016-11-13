@@ -10,6 +10,21 @@ parser code {:
     public void setTablasDeSimbolos(TablasDeSimbolos t){
         tds=t;
     }
+
+    public  int errors_count =0;
+    public void error_tipos_diferentes_exp(String exp1,String exp2,  int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puedo realizar la operación, la expresión: "+exp1+" y la expresión: "+exp2+" son tipos diferentes): Semantic error");
+    }
+
+    public void error_tipo_no_numerico_exp(String exp1,String exp2,  int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puedo realizar la operación, la expresión: "+exp1+" y la expresión: "+exp2+" no son de tipo númerico): Semantic error");
+    }
+    public void error_argumentos_incorrectos (String id,String argsenviados,String argsesperados, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", se encontraron los argumentos de tipo: "+argsenviados+" en la llamada al procedimiento o función: "+id+", donde se esperaba: "+argsesperados+"): Semantic error");
+    }
     public Programa programaT;
     public String ambito_actual="1";
 
@@ -158,12 +173,30 @@ BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMEN
                  |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 CONTENIDO_SUB:cs end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp);  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
           ;
 
-BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments"));:}
-                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments")); RESULT.getArguments().addListNode(a);:}
+BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments"));
+                                                                               if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals("Void")){
+                                                                                    RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                               }else{
+                                                                                     RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                     error_argumentos_incorrectos(id, "Void",((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
+                                                                               } :}
+                            |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments")); RESULT.getArguments().addListNode(a);
+                                                                                                    Tipo t = new Producto();
+                                                                                                    for(int i=RESULT.getArguments().getListNode().size()-1; i>=0; i--){
+                                                                                                        ((Producto)t).addArgumento(RESULT.getArguments().getListNode().get(i).getTipo_tabla());
+                                                                                                    }
+                                                                                                    if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals(t.toString())){
+                                                                                                        RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                                    }else{
+                                                                                                        RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                                        error_argumentos_incorrectos(id,t.toString(),((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
+                                                                                                    }
+                                                                                                    
+                                                                                            :}
                   ;
 
-ARGUMENTOS::=EXP:e {:RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);:}
-             |EXP:e coma espacio ARGUMENTOS:a {:RESULT =a; RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);:}
+ARGUMENTOS::=EXP:e {:RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);  RESULT.get(RESULT.size()-1).setTipo_tabla(e.getTipo_tabla());:}
+             |EXP:e coma espacio ARGUMENTOS:a {:RESULT =a; RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e); RESULT.get(RESULT.size()-1).setTipo_tabla(e.getTipo_tabla());:}
              ;
 
 
@@ -173,19 +206,42 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                     ;   
 
 
-EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2);:}
-       |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);:}
-       |VALORES:v INDENTACION2 {:RESULT =  v;:}
-       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v);:}
+EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2); 
+
+                                    if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
+                                        if(e.getTipo_tabla().toString().equals("Integer")){
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());}
+                                        else{
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());
+                                            error_tipo_no_numerico_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                        }
+                                      }else{
+                                        RESULT.setTipo_tabla(e.getTipo_tabla());
+                                        error_tipos_diferentes_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                      }:}
+       |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);
+                                       if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
+                                        if(e.getTipo_tabla().toString().equals("Integer")){
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());}
+                                        else{
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());
+                                            error_tipo_no_numerico_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                        }
+                                      }else{
+                                        RESULT.setTipo_tabla(e.getTipo_tabla());
+                                        error_tipos_diferentes_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                      }:}
+       |VALORES:v INDENTACION2 {:RESULT =  v; :}
+       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla());:}
        ;
 
-VALORES::=identificador:id {:RESULT = new Exp(id); :}
+VALORES::=identificador:id {:RESULT = new Exp(id);RESULT.setTipo_tabla(tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo());:}
           |truefalse:tf {:RESULT = new Exp(tf); RESULT.setTipo_tabla(new booleant()); :}
           |numero:n {:RESULT = new Exp(n); RESULT.setTipo_tabla(new integert()); :}
           |cadena:c {:RESULT = new Exp(c);  RESULT.setTipo_tabla(new stringt()); :}
           |ELEMENTOS_ESTRUCTUA:ee {:RESULT = new Exp(ee); :}
           |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; RESULT.setTipo_tabla(e.getTipo_tabla());:}
-          |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf;:}
+          |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf; RESULT.setTipo_tabla(bllf.getTipo_tabla()); :}
           ;
 
 ELEMENTOS_ESTRUCTUA::= ELEMENTOS_ESTRUCTUA:ee punto identificador:id {: RESULT=ee+"."+id;:}

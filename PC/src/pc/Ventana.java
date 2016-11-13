@@ -209,22 +209,25 @@ public class Ventana extends javax.swing.JFrame {
             Lexer scanner = new Lexer(new FileReader(archivo));
             Lexer scanner2 = new Lexer(new FileReader(archivo));
             try {
-              VbasicSintaxisAmbito  p = new VbasicSintaxisAmbito(scanner);
+                VbasicSintaxisAmbito p = new VbasicSintaxisAmbito(scanner);
                 p.parse();
                 tds = p.t_simbolos;
-                if (p.errors_count==0) {
-                   VbasicTiposArbol vt = new VbasicTiposArbol(scanner2);
+                if (p.errors_count == 0) {
+                    VbasicTiposArbol vt = new VbasicTiposArbol(scanner2);
                     vt.setTablasDeSimbolos(tds);
                     vt.parse();
-                    ArbolAbstracto = vt.programaT;
-                    try {
-                        DefaultTreeModel model1 = (DefaultTreeModel) this.tree.getModel();
-                        model1.setRoot(ArbolAbstracto.toNodeP());
-                        this.tree.setModel(model1);
-                    } catch (Exception e) {
-                        System.out.println(e);
+                    
+                    if (vt.errors_count == 0) {
+                        ArbolAbstracto = vt.programaT;
+                        try {
+                            DefaultTreeModel model1 = (DefaultTreeModel) this.tree.getModel();
+                            model1.setRoot(ArbolAbstracto.toNodeP());
+                            this.tree.setModel(model1);
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
                     }
-               }
+                }
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -258,7 +261,7 @@ public class Ventana extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        if(tds!=null){
+        if (tds != null) {
             VentanaTablaSimbolos tbs = new VentanaTablaSimbolos(tds);
             tbs.setVisible(true);
         }

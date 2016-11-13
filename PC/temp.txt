@@ -1,18 +1,6 @@
-type e
-a as integer
-b as string
-c as boolean
-end type
-
-sub main()
-
+sub main(byval q as integer, byval b as integer, byref g as boolean)
+dim i as integer
+dim t as boolean
+i = "a"
+main(5 + 10 - 9 * 8, i * i + 6 * 4, t )
 end sub
-
-
-function s(byval k as string, byval r as integer)
-
-end function
-
-function s1(byval k as string, byval r as integer) as string
-
-end function

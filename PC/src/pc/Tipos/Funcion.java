@@ -25,8 +25,25 @@ public class Funcion extends Tipo{
         retorno = r;
     }
     
+    public Tipo getRetorno(){
+        return retorno;
+    }
+    
     public void addParametro(Tipo p){
         Params.add(p);
+    }
+    
+    public String toStringSinRetorno(){
+        String con ="";
+        for(int i=0;i<Params.size();i++){
+            if(i==0)
+                con+=Params.get(i).toString();
+            else
+                con+= "X"+Params.get(i).toString();
+        }
+        
+        return con;
+        
     }
     
     @Override

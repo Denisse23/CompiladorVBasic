@@ -738,6 +738,21 @@ public class VbasicTiposArbol extends java_cup.runtime.lr_parser {
     public void setTablasDeSimbolos(TablasDeSimbolos t){
         tds=t;
     }
+
+    public  int errors_count =0;
+    public void error_tipos_diferentes_exp(String exp1,String exp2,  int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puedo realizar la operación, la expresión: "+exp1+" y la expresión: "+exp2+" son tipos diferentes): Semantic error");
+    }
+
+    public void error_tipo_no_numerico_exp(String exp1,String exp2,  int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puedo realizar la operación, la expresión: "+exp1+" y la expresión: "+exp2+" no son de tipo númerico): Semantic error");
+    }
+    public void error_argumentos_incorrectos (String id,String argsenviados,String argsesperados, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", se encontraron los argumentos de tipo: "+argsenviados+" en la llamada al procedimiento o función: "+id+", donde se esperaba: "+argsesperados+"): Semantic error");
+    }
     public Programa programaT;
     public String ambito_actual="1";
 
@@ -1585,6 +1600,12 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int idright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-2)).right;
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-2)).value;
 		RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments"));
+                                                                               if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals("Void")){
+                                                                                    RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                               }else{
+                                                                                     RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                     error_argumentos_incorrectos(id, "Void",((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
+                                                                               } 
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("BLOQUE_LLAMADAS_FUNCIONES",8, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-2)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1600,6 +1621,18 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int aright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).right;
 		ArrayList<Node> a = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).value;
 		RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments")); RESULT.getArguments().addListNode(a);
+                                                                                                    Tipo t = new Producto();
+                                                                                                    for(int i=RESULT.getArguments().getListNode().size()-1; i>=0; i--){
+                                                                                                        ((Producto)t).addArgumento(RESULT.getArguments().getListNode().get(i).getTipo_tabla());
+                                                                                                    }
+                                                                                                    if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals(t.toString())){
+                                                                                                        RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                                    }else{
+                                                                                                        RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
+                                                                                                        error_argumentos_incorrectos(id,t.toString(),((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
+                                                                                                    }
+                                                                                                    
+                                                                                            
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("BLOQUE_LLAMADAS_FUNCIONES",8, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-3)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1611,7 +1644,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int eleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).left;
 		int eright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		Exp e = (Exp)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
-		RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);
+		RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);  RESULT.get(RESULT.size()-1).setTipo_tabla(e.getTipo_tabla());
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("ARGUMENTOS",18, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1626,7 +1659,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int aleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).left;
 		int aright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		ArrayList<Node> a = (ArrayList<Node>)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
-		RESULT =a; RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e);
+		RESULT =a; RESULT.add(new Stmt_Argumento("argument")); RESULT.get(RESULT.size()-1).addNode(e); RESULT.get(RESULT.size()-1).setTipo_tabla(e.getTipo_tabla());
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("ARGUMENTOS",18, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-3)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1698,7 +1731,19 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int e2left = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).left;
 		int e2right = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		Exp e2 = (Exp)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
-		RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2);
+		RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2); 
+
+                                    if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
+                                        if(e.getTipo_tabla().toString().equals("Integer")){
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());}
+                                        else{
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());
+                                            error_tipo_no_numerico_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                        }
+                                      }else{
+                                        RESULT.setTipo_tabla(e.getTipo_tabla());
+                                        error_tipos_diferentes_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                      }
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("EXP",19, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-3)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1717,6 +1762,17 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int e2right = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		Exp e2 = (Exp)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
 		RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);
+                                       if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
+                                        if(e.getTipo_tabla().toString().equals("Integer")){
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());}
+                                        else{
+                                            RESULT.setTipo_tabla(e.getTipo_tabla());
+                                            error_tipo_no_numerico_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                        }
+                                      }else{
+                                        RESULT.setTipo_tabla(e.getTipo_tabla());
+                                        error_tipos_diferentes_exp(e.getVal(), e2.getVal(), eleft, eright);
+                                      }
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("EXP",19, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-3)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1728,7 +1784,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int vleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).left;
 		int vright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).right;
 		Exp v = (Exp)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).value;
-		RESULT =  v;
+		RESULT =  v; 
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("EXP",19, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1740,7 +1796,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int vleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).left;
 		int vright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).right;
 		Exp v = (Exp)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-1)).value;
-		RESULT = new Not("not"); RESULT.addNode(v);
+		RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla());
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("EXP",19, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.elementAt(CUP$VbasicTiposArbol$top-3)), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1752,7 +1808,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int idleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).left;
 		int idright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		String id = (String)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
-		RESULT = new Exp(id); 
+		RESULT = new Exp(id);RESULT.setTipo_tabla(tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo());
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("VALORES",17, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;
@@ -1824,7 +1880,7 @@ ambito_actual=tds.get_ambito_hijos_id(id);
 		int bllfleft = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).left;
 		int bllfright = ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()).right;
 		Stmt_Llamada_Funcion bllf = (Stmt_Llamada_Funcion)((java_cup.runtime.Symbol) CUP$VbasicTiposArbol$stack.peek()).value;
-		 RESULT = bllf;
+		 RESULT = bllf; RESULT.setTipo_tabla(bllf.getTipo_tabla()); 
               CUP$VbasicTiposArbol$result = parser.getSymbolFactory().newSymbol("VALORES",17, ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), ((java_cup.runtime.Symbol)CUP$VbasicTiposArbol$stack.peek()), RESULT);
             }
           return CUP$VbasicTiposArbol$result;

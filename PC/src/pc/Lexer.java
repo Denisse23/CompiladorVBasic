@@ -437,7 +437,7 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
   public String current_lexeme(){
     int l = yyline+1;
     int c = yycolumn+1;
-    return " line: "+l+" , column: "+c+" , lexema: '"+yytext()+"'";
+    return "Error (line: "+l+", column: "+c+", no se reconoce el token: '"+yytext()+"'): Lexical error";
   }
 
     private String extraerCadenaReal() {
@@ -472,40 +472,6 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
         return cadena;
     }
 
-    private boolean revisionPalabraClave(){
-        boolean respuesta = false;
-        Pattern pat = Pattern.compile("[A-Z][a-z]+");
-        Matcher mat = pat.matcher(yytext());
-        if (mat.matches()) {
-            respuesta = true;
-        } else {
-            System.out.println("Palabra clave->"+yytext().substring(0,1).toUpperCase()
-                         +yytext().substring(1,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn);
-        }
-        return respuesta;
-    }
-
-    private boolean revisionPalabraClave2(){
-        boolean respuesta = false;
-        switch (yytext()) {
- 
-        case "ByVal":
-        respuesta = true;
-        break;
-        case "ByRef":
-        respuesta = true;
-        break;
-        default:
-        System.out.println("Palabra clave->By"+yytext().substring(2,3).toUpperCase()
-                         +yytext().substring(3,yytext().length()).toLowerCase()+". Error->Linea: "+yyline+", columna: "+yycolumn);
-        break;
- 
-        }
-
-        return respuesta;
-    }
-
-   
 
 
   /**
@@ -892,7 +858,7 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { System.err.println("\nNo se reconoce el token: "+" Error-> "+current_lexeme());
+            { System.err.println(current_lexeme());
             }
           case 41: break;
           case 2: 
