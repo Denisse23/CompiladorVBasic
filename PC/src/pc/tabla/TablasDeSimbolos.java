@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pc;
+package pc.tabla;
 
 import java.util.ArrayList;
 import pc.Tipos.Tipo;
@@ -14,7 +14,7 @@ import pc.Tipos.Tipo;
  */
 public class TablasDeSimbolos {
 
-    ArrayList<TablaSimbolos> tablas;
+    public ArrayList<TablaSimbolos> tablas;
 
     public TablasDeSimbolos() {
         tablas = new ArrayList();
@@ -43,62 +43,54 @@ public class TablasDeSimbolos {
     }
 
     public boolean existe_id(String id, String ambito, String nametabla) {
-        boolean esta = false;
         TablaSimbolos t = getTabla(nametabla);
         for (int j = 0; j < t.get_ids().size(); j++) {
             if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(ambito)) {
-                esta = true;
-                break;
+                return true;
             }
 
         }
 
-        return esta;
+        return false;
     }
 
     public boolean existe_id_var_proc(String id, String ambito, String nametabla) {
-        boolean esta = false;
         TablaSimbolos t = getTabla(nametabla);
         for (int j = 0; j < t.get_ids().size(); j++) {
             if ((t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(ambito))
                     || (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getTipo().getName().equals("Proc"))) {
-                esta = true;
-                break;
+                return true;
             }
 
         }
 
-        return esta;
+        return false;
     }
 
     public boolean hay_main() {
-        boolean esta = false;
         TablaSimbolos t = getTabla("Principal");
 
         for (int j = 0; j < t.get_ids().size(); j++) {
             if (t.get_ids().get(j).getId().toLowerCase().equals("main") && t.get_ids().get(j).getTipo().getName().equals("Proc")) {
-                esta = true;
-                break;
+                return true;
             }
 
         }
 
-        return esta;
+        return false;
     }
 
     public boolean hay_proc_o_fun() {
-        boolean esta = false;
         TablaSimbolos t = getTabla("Principal");
 
         for (int j = 0; j < t.get_ids().size(); j++) {
             if (t.get_ids().get(j).getTipo().getName().equals("Proc")) {
-                esta = true;
-                break;
+                return true;
             }
 
         }
 
-        return esta;
+        return false;
     }
 
     public String remover(String ambito) {
@@ -122,45 +114,40 @@ public class TablasDeSimbolos {
     }
 
     public boolean existe_id_ambitos(String id, String ambito) {
-        boolean esta = false;
         TablaSimbolos t = getTabla("Principal");
         String am = ambito;
         while (!am.equals("")) {
             for (int j = 0; j < t.get_ids().size(); j++) {
                 if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am) &&
                     !(t.get_ids().get(j).getTipo().getName().equals("Record"))) {
-                    esta = true;
-                    break;
+                    return true;
                 }
 
             }
             am = remover(am);
 
         }
-        return esta;
+        return false;
     }
 
     public Token get_id_ambitos(String id, String ambito, String tabla) {
-        Token enviar = null;
         TablaSimbolos t = getTabla(tabla);
         String am = ambito;
         while (!am.equals("")) {
             for (int j = 0; j < t.get_ids().size(); j++) {
                 if (!ambito.equals("registro")) {
                     if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am)) {
-                        enviar = t.get_ids().get(j);
-                        break;
+                        return t.get_ids().get(j);
                     }
                 } else if (t.get_ids().get(j).getId().equals(id)) {
-                    enviar = t.get_ids().get(j);
-                    break;
+                    return t.get_ids().get(j);
                 }
 
             }
             am = remover(am);
 
         }
-        return enviar;
+        return null;
     }
 
     public Object[] existe_id_estructura(String id, String ambito) {
@@ -213,17 +200,15 @@ public class TablasDeSimbolos {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public String get_ambito_hijos_id(String id) {
-        String enviar = "";
         TablaSimbolos t = getTabla("Principal");
         for (int j = 0; j < t.get_ids().size(); j++) {
             if (t.get_ids().get(j).getId().equals(id)) {
-                enviar = t.get_ids().get(j).getHijos();
-                break;
+                return t.get_ids().get(j).getHijos();
             }
 
         }
 
-        return enviar;
+        return "";
     }
 
     public Token get_id_estructura(String idcompuesta, String ambito_actual) {
@@ -239,17 +224,15 @@ public class TablasDeSimbolos {
     }
     
     public String get_id_segun_ambito_hijos(String ambito) {
-        String enviar = "";
         TablaSimbolos t = getTabla("Principal");
         for (int j = 0; j < t.get_ids().size(); j++) {
             if (t.get_ids().get(j).getHijos().equals(ambito)) {
-                enviar = t.get_ids().get(j).getId();
-                break;
+                return t.get_ids().get(j).getId();
             }
 
         }
 
-        return enviar;
+        return "";
     }
 
 }

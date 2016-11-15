@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import pc.Tipos.*;
 import java.util.Stack;
 import java.util.Collections;
+import pc.tabla.*;
 
 parser code {:
      public static int errors = 0;
@@ -45,9 +46,9 @@ public void report_error(String message, Object info) {
         System.err.println("Error (line: "+line+", column: "+column+",  la funcion o procedimiento: "+id+" no ha sido declarado): Semantic error");
     }
 
-    public void error_var_o_type_global(){
+    public void error_type_up(){
         errors_count++;
-        System.err.println("Error (Solamente se permiten comentarios después de una función o procedimiento): Semantic error");
+        System.err.println("Error (No se permite declaración de estructuras después de una función o procedimiento): Semantic error");
     }
 
     public void error_ambito_no_existe_var (String id, int line, int column){
@@ -198,8 +199,8 @@ PROGRAMA::=INDENTACION PROGRAMA:p {::}
            |INDENTACION PROGRAMA2:p2 {::}
            |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal);} sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_PROCEDIMIENTO:bp {:remover_ambito(); offset=stack_offset.pop();:}PROGRAMA2:p2 {: :}
            |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;:}BLOQUE_FUNCION:bf {:remover_ambito();offset=stack_offset.pop();:} INDENTACION2 PROGRAMA2:p2 {::}
-           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }if(t_simbolos.hay_proc_o_fun()){error_var_o_type_global();} sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_ESTRUCTURA:be {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 PROGRAMA2:p2 {::}
-           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); } if(t_simbolos.hay_proc_o_fun()){error_var_o_type_global();}:}DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: :}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }if(t_simbolos.hay_proc_o_fun()){error_type_up();} sumar_ambito(); ambito_actual+=".0";stack_offset.push(offset);offset=0;:}BLOQUE_ESTRUCTURA:be {:remover_ambito();offset=stack_offset.pop();:}INDENTACION2 PROGRAMA2:p2 {::}
+           |{:if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); } :}DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {: :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {::}
            |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
@@ -581,7 +582,6 @@ BLOQUE_LECTURA::=identificador:id espacio asignacion espacio {:if(!t_simbolos.ex
                                    error_ambito_no_existe_var (id, idleft, idright);     
                               }:} console punto read abrirparentesis cerrarparentesis {::}
                  |CODIGO_ELEMENTOS_ESTRUCTUA espacio   asignacion  espacio console punto read abrirparentesis cerrarparentesis 
-                 |console punto read abrirparentesis cerrarparentesis {::}
                  ;
 
 BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {::}

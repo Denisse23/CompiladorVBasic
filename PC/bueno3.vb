@@ -13,6 +13,8 @@ Function nuevo(ByVal j As Integer) As String
 	End If
 End Function
 
+Dim r as string
+
 Sub main(ByVal variable As Integer)
 	Dim r as MiNuevoTipo
 	Dim i As Integer
@@ -21,14 +23,14 @@ Sub main(ByVal variable As Integer)
 	
 	
 	For i = 0 To variable
-		If r.d = 3 Then
+		If r.b = 3 Then
 			Console.Write(nuevo(5))
 		End If
 	Next
 
 	i = Console.Read()
 
-	Do While r.b <= variable
+	Do While r.a <= variable
 		Console.Write(i)
 	Loop
 

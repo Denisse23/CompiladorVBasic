@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pc;
+package pc.tabla;
 
 import java.util.ArrayList;
 
@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author Denisse
  */
 public class TablaSimbolos {
-    String name;
+    public String name;
     private ArrayList<Token> tokens;
     
     public TablaSimbolos(String name){

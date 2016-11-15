@@ -5,6 +5,7 @@
  */
 package pc;
 
+import pc.tabla.TablasDeSimbolos;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;

@@ -7,11 +7,13 @@ End Type
 Function nuevo(ByVal j As Integer) As String
 	
 	If j = 0 Then
-		Return ""
+		Return "Si"
 	Else
 		Return nuevo(2 * j - 1)
 	End If
 End Function
+
+Dim r as string
 
 Sub main(ByVal variable As Integer)
 	Dim r as MiNuevoTipo
@@ -26,7 +28,7 @@ Sub main(ByVal variable As Integer)
 		End If
 	Next
 
-	i = Console.Read()
+	r.a = Console.Read()
 
 	Do While r.a <= variable
 		Console.Write(i)

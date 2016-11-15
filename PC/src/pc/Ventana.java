@@ -5,6 +5,7 @@
  */
 package pc;
 
+import pc.tabla.TablasDeSimbolos;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

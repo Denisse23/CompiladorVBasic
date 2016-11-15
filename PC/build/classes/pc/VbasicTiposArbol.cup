@@ -4,6 +4,7 @@ import java_cup.runtime.Symbol;
 import pc.treeelements.*;
 import java.util.ArrayList;
 import pc.Tipos.*;
+import pc.tabla.*;
 
 parser code {:
     TablasDeSimbolos tds;
@@ -26,14 +27,19 @@ parser code {:
         System.err.println("Error (line: "+line+", column: "+column+", se encontraron los argumentos de tipo: "+argsenviados+" en la llamada al procedimiento o función: "+id+", donde se esperaba: "+argsesperados+"): Semantic error");
     }
 
-    public void error_write_void  (String exp,String tipo, int line, int column){
+    public void error_write (String exp,String tipo, int line, int column){
         errors_count++;
-        System.err.println("Error (line: "+line+", column: "+column+", no se pudo imprimir la expresión: "+exp+" que es de tipo: "+tipo+"): Semantic error");
+        System.err.println("Error (line: "+line+", column: "+column+", no se puede imprimir la expresión: "+exp+" que es de tipo: "+tipo+"): Semantic error");
+    }
+
+    public void error_read (String id,String tipo, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puede asignar la lectura a la variable: "+id+" de tipo: "+tipo+"): Semantic error");
     }
 
     public void error_asignacion (String id, String tipoid, String exp, String tipoexp, int line, int column){
         errors_count++;
-        System.err.println("Error (line: "+line+", column: "+column+", no se pudo asignar al identificador: "+id+" de tipo: "+tipoid+", la expresión: "+exp+" de tipo: "+tipoexp+"): Semantic error");
+        System.err.println("Error (line: "+line+", column: "+column+", no se pudo asignar a la variable: "+id+" de tipo: "+tipoid+", la expresión: "+exp+" de tipo: "+tipoexp+"): Semantic error");
     }
 
     public void  error_asignacion_for (int line, int column){
@@ -457,12 +463,25 @@ CONTENIDO_ESTRUCTURA::=newline INDENTACION2 DECLARACION_VARIABLE_ESTRUCTURA:dve 
                |newline INDENTACION2 CONTENIDO_ESTRUCTURA:ce {:RESULT = ce;:}
                |BLOQUE_COMENTARIOS:bc CONTENIDO_ESTRUCTURA:ce {:RESULT = ce; RESULT.add(bc);:}
                ;
-DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:RESULT = new Stmt_Variable("as"); RESULT.addNode(new Node(id)); RESULT.addNode(t);:}
+DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:RESULT = new Stmt_Variable("var"); RESULT.addNode(new Node(id)); RESULT.addNode(t);:}
                                  ;
 
-BLOQUE_LECTURA::=identificador:id espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id));:}
-                 |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(ee));:}
-                 |console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read");:}
+BLOQUE_LECTURA::=identificador:id  espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id)); 
+                                                            String ti = tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString();
+                                        if(ti.equals("String")||
+                                           ti.equals("Integer")||
+                                           ti.equals("Boolean")){
+                                      }else{
+                                        error_read(id,ti, idleft, idright);
+                                      }:}
+                 |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(ee));
+                                                 String ti = tds.get_id_estructura(ee, ambito_actual).getTipo().toString();
+                                        if(ti.equals("String")||
+                                           ti.equals("Integer")||
+                                           ti.equals("Boolean")){
+                                      }else{
+                                        error_read(ee,ti, eeleft, eeright);
+                                      }:}
                  ;
 
 BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {:RESULT = new Stmt_Escritura("write"); RESULT.addNode(e);
@@ -470,7 +489,7 @@ BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {
                                                        e.getTipo_tabla().toString().equals("Integer") ||
                                                       e.getTipo_tabla().toString().equals("Boolean") ){
                                                     }else{
-                                                         error_write_void(e.getVal(),e.getTipo_tabla().toString(), eleft, eright);
+                                                         error_write(e.getVal(),e.getTipo_tabla().toString(), eleft, eright);
                                                     }
                                             :}
                  ;
