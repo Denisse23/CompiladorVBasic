@@ -11,7 +11,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author Denisse
  */
-public class Not extends Exp{
+public class Not extends Condition{
     
     public Not(String v) {
         super(v);

@@ -409,13 +409,14 @@ ARGUMENTOS::=EXP:e {::}
 EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {::}
                     |EXP:e asignacion:a espacio EXP:e2 {::} 
                     |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {::}
+                    |abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2
+                    |not espacio abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2
                     ;   
 
 
 EXP::= EXP:e opsum:os espacio EXP:e2 {::}
        |EXP:e opmult:om espacio EXP:e2 {::}
        |VALORES:v INDENTACION2 {::}
-       |not espacio VALORES:v INDENTACION2 {::}
        ;
 
 VALORES::=identificador:id {:if(!t_simbolos.existe_id_ambitos(id, remover(ambito_actual))){

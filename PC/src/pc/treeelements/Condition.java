@@ -11,8 +11,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author Denisse
  */
-public class Condition extends Node {
-    
+public class Condition extends Node{
     public Condition(String v) {
         super(v);
     }

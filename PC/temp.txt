@@ -1,25 +1,37 @@
-Dim numero As Integer
+Type MiNuevoTipo
+	a As Integer
+	b As String
+	c As Integer
+End Type
 
-Function funcion(ByRef otrovalor As Integer)
-
-	If numero >= 3 Then
-		numero2 = otrovalor * 3
+Function nuevo(ByVal j As Integer) As String
 	
+	If j = 0 Then
+		Return "Si"
 	Else
-		numero2 = otrovalor * numero
-	
+		Return nuevo(2 * j - 1)
 	End If
-
 End Function
 
-Function funcion1()
-	Dim a As Integer
-	Dim numero2 As Integer
-	
-	If b >= 3 Then
-		numero2 = ""
-	End If
+Dim r as string
 
-	a = numero2 / b
-	Console.Write(a)
-End Function
+Sub main(ByVal variable As Integer)
+	Dim r as MiNuevoTipo
+	Dim i As Integer
+	Console.Write(variable)
+
+	
+	
+	For i = 0 To variable
+		If r.b = 3 Then
+			Console.Write(nuevo(5))
+		End If
+	Next
+
+	i = Console.Read()
+
+	Do While r.a <= variable
+		Console.Write(i)
+	Loop
+
+End Sub
