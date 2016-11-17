@@ -7,6 +7,15 @@ import pc.Tipos.*;
 import pc.tabla.*;
 
 parser code {:
+
+    public void report_error(String message, Object info) {
+        if (info instanceof String){} else {}
+    }
+   
+    public void report_fatal_error() {
+        throw new RuntimeException("Fatal Syntax Error");
+    }
+
     TablasDeSimbolos tds;
     public void setTablasDeSimbolos(TablasDeSimbolos t){
         tds=t;
@@ -140,6 +149,7 @@ PROGRAMA::=INDENTACION PROGRAMA:p {:RESULT = p;:}
            |BLOQUE_ESTRUCTURA:be INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addNode(be);:}
            |DECLARACION_VARIABLE:dv INDENTACION2 PROGRAMA2:p2 {:RESULT = p2; RESULT.addListNode(dv); :}
            |BLOQUE_COMENTARIOS:bc INDENTACION2 PROGRAMA2:p2  {:RESULT = p2; RESULT.addNode(bc);:}
+           |error {: parser.report_error("ERROR","SYNTAX"); :} PROGRAMA2
            ;
 PROGRAMA2::=newline PROGRAMA:p {:RESULT = p;:}
             |newline {:RESULT = new Programa("Programa");:}
@@ -177,10 +187,18 @@ CONTENIDO_FUNCTION::=newline INDENTACION2 DECLARACION_VARIABLE:dv INDENTACION2  
 
 
 BLOQUE_RETURN::= Return espacio EXP:e {:RESULT = new Stmt_Return("return"); RESULT.addNode(e);
+                                            boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){              
                                             String id_funcion = tds.get_id_segun_ambito_hijos(ambito_actual);
-                                            if(!((Funcion)tds.getTabla("Principal").get_id(id_funcion).getTipo()).getRetorno().toString().equals(e.getTipo_tabla().toString())){
-                                                error_valor_return(id_funcion, ((Funcion)tds.getTabla("Principal").get_id(id_funcion).getTipo()).getRetorno().toString(), e.getVal(), e.getTipo_tabla().toString(), eleft, eright );
-                                            }
+                                                if(!id_funcion.equals("")){
+                                                if(!((Funcion)tds.getTabla("Principal").get_id(id_funcion).getTipo()).getRetorno().toString().equals(e.getTipo_tabla().toString())){
+                                                    error_valor_return(id_funcion, ((Funcion)tds.getTabla("Principal").get_id(id_funcion).getTipo()).getRetorno().toString(), e.getVal(), e.getTipo_tabla().toString(), eleft, eright );
+                                                }
+                                            }}
                                       :}
          ; 
 
@@ -205,38 +223,42 @@ TIPOS::=tipovar:tv {:RESULT = new Node(tv);:}
           |identificador:id  {:RESULT = new Node(id);:}
           ;
 
-BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs); :}
-                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+BLOQUE_PROCEDIMIENTO::=sub:s espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_SUB:cs end espacio sub {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs); :}
+                       |sub espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2  {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_SUB:cs end espacio sub  {:RESULT = new Stmt_Procedimiento("sub"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
                 ;
  
 LISTA_PARAMENTROS::=tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t {:RESULT = new ArrayList(); RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
                     |tipoparametro:tp espacio identificador:id espacio as espacio tipovar:t coma espacio LISTA_PARAMENTROS:lp {:RESULT = lp; RESULT.add(new Stmt_Parametro("parameter")); RESULT.get(RESULT.size()-1).addNode(new Node(tp)); RESULT.get(RESULT.size()-1).addNode(new Node(id)); RESULT.get(RESULT.size()-1).addNode(new Node(t));:}
                     ;
 
-BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_FUNCTION:cf end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
-                 |function espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2{:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters"));  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
-                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2 {:ambito_actual=tds.get_ambito_hijos_id(id);:} CONTENIDO_SUB:cs end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp);  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+BLOQUE_FUNCION::=function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis espacio as espacio TIPOS:t INDENTACION2  {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_FUNCTION:cf end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis espacio as espacio TIPOS:t INDENTACION2  {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_FUNCTION:cf end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.addNode(t); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cf);:}
+                 |function espacio identificador:id abrirparentesis cerrarparentesis INDENTACION2 {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_SUB:cs end espacio function {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters"));  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
+                 |function espacio identificador:id abrirparentesis LISTA_PARAMENTROS:lp cerrarparentesis INDENTACION2  {:ambito_actual=(tds.get_ambito_hijos_id(id).equals("")?ambito_actual:tds.get_ambito_hijos_id(id));:} CONTENIDO_SUB:cs end espacio function  {:RESULT = new Stmt_Funcion("function"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("parameters")); RESULT.getParameters().setNodes(lp);  RESULT.addNode(new Node("void")); RESULT.addNode(new Node("body")); RESULT.getBody().setNodes(cs);:}
           ;
 
 BLOQUE_LLAMADAS_FUNCIONES::=identificador:id abrirparentesis cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments"));
+                                                                               Token tok = tds.get_id_ambitos(id, "1", "Principal");
+                                                                               if(!tok.equals("")){
                                                                                if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals("Void")){
                                                                                     RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
                                                                                }else{
                                                                                      RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
                                                                                      error_argumentos_incorrectos(id, "Void",((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
-                                                                               } :}
+                                                                               }} :}
                             |identificador:id abrirparentesis ARGUMENTOS:a cerrarparentesis {:RESULT = new Stmt_Llamada_Funcion("call"); RESULT.addNode(new Node(id)); RESULT.addNode(new Node("arguments")); RESULT.getArguments().addListNode(a);
                                                                                                     Tipo t = new Producto();
                                                                                                     for(int i=RESULT.getArguments().getListNode().size()-1; i>=0; i--){
                                                                                                         ((Producto)t).addArgumento(RESULT.getArguments().getListNode().get(i).getTipo_tabla());
                                                                                                     }
+                                                                                                    Token tok = tds.get_id_ambitos(id, "1", "Principal");
+                                                                                                    if(tok!=null){
                                                                                                     if(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno().equals(t.toString())){
                                                                                                         RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
                                                                                                     }else{
                                                                                                         RESULT.setTipo_tabla(((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).getRetorno());
                                                                                                         error_argumentos_incorrectos(id,t.toString(),((Funcion)tds.get_id_ambitos(id, "1", "Principal").getTipo()).toStringSinRetorno() , idleft, idright);
-                                                                                                    }
+                                                                                                    }}
                                                                                                     
                                                                                             :}
                   ;
@@ -247,6 +269,12 @@ ARGUMENTOS::=EXP:e {:RESULT = new ArrayList(); RESULT.add(new Stmt_Argumento("ar
 
 
 EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr); RESULT.addNode(e); RESULT.addNode(e2);
+                    boolean existen_ids = true;
+                                    if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
+                                     || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
+                                             existen_ids = false;
+                                    }
+                                    if(existen_ids){
                     if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
                         if(e.getTipo_tabla().toString().equals("Integer")){
                             RESULT.setTipo_tabla(new booleant());}
@@ -259,8 +287,14 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                         ///ya tiene tipo void por default 
                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(), opr,eleft, eright);
                       }
-                    :}
+                    }:}
                     |EXP:e asignacion:a espacio EXP:e2 {:RESULT = new Condition("="); RESULT.addNode(e); RESULT.addNode(e2);
+                    boolean existen_ids = true;
+                                     if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
+                                     || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
+                                             existen_ids = false;
+                                    }
+                                    if(existen_ids){
                      if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
                         RESULT.setTipo_tabla(new booleant());
                      }else{
@@ -268,7 +302,7 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(), "=",eleft, eright);
                       }
 
-                     :} 
+                     }:} 
                     |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {:RESULT = new Condition(ol); RESULT.addNode(ec); RESULT.addNode(ec2);
                         if(ec.getTipo_tabla().toString().equals(ec2.getTipo_tabla().toString())){
                         if(ec.getTipo_tabla().toString().equals("Boolean")){
@@ -287,7 +321,12 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
 
 
 EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2); 
-
+                                    boolean existen_ids = true;
+                                     if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
+                                     || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
+                                             existen_ids = false;
+                                    }
+                                    if(existen_ids){
                                     if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
                                         if(e.getTipo_tabla().toString().equals("Integer")){
                                             RESULT.setTipo_tabla(e.getTipo_tabla());}
@@ -298,8 +337,15 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); 
                                       }else{
                                         RESULT.setTipo_tabla(e.getTipo_tabla());
                                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(),os, eleft, eright);
-                                      }:}
+                                        
+                                      }}:}
        |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);
+                                        boolean existen_ids = true;
+                                     if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
+                                     || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
+                                             existen_ids = false;
+                                    }
+                                    if(existen_ids){
                                        if(e.getTipo_tabla().toString().equals(e2.getTipo_tabla().toString())){
                                         if(e.getTipo_tabla().toString().equals("Integer")){
                                             RESULT.setTipo_tabla(e.getTipo_tabla());}
@@ -310,16 +356,16 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); 
                                       }else{
                                         RESULT.setTipo_tabla(e.getTipo_tabla());
                                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(),om, eleft, eright);
-                                      }:}
+                                      }}:}
        |VALORES:v INDENTACION2 {:RESULT =  v; :}
        |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla());:}
        ;
 
-VALORES::=identificador:id {:RESULT = new Exp(id);RESULT.setTipo_tabla(tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo());:}
+VALORES::=identificador:id {:RESULT = new Exp(id);RESULT.setTypeIdentificador(true);RESULT.setTipo_tabla((tds.get_id_ambitos(id, ambito_actual, "Principal")!=null?tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo():new voidt()));:}
           |truefalse:tf {:RESULT = new Exp(tf); RESULT.setTipo_tabla(new booleant()); :}
           |numero:n {:RESULT = new Exp(n); RESULT.setTipo_tabla(new integert()); :}
           |cadena:c {:RESULT = new Exp(c);  RESULT.setTipo_tabla(new stringt()); :}
-          |ELEMENTOS_ESTRUCTUA:ee {:RESULT = new Exp(ee); RESULT.setTipo_tabla(tds.get_id_estructura(ee, ambito_actual).getTipo());:}
+          |ELEMENTOS_ESTRUCTUA:ee {:RESULT = new Exp(ee); RESULT.setTipo_tabla((tds.get_id_estructura(ee, ambito_actual)!=null?tds.get_id_estructura(ee, ambito_actual).getTipo():new voidt()));:}
           |abrirparentesis EXP:e cerrarparentesis {:RESULT = e; RESULT.setTipo_tabla(e.getTipo_tabla());:}
           |BLOQUE_LLAMADAS_FUNCIONES:bllf {: RESULT = bllf; RESULT.setTipo_tabla(bllf.getTipo_tabla()); :}
           ;
@@ -355,43 +401,74 @@ BLOQUE_IF::=If espacio EXP_CONDICIONALES:ec  then  CONTENIDO_IF:ci end {:if(!ec.
             |If espacio EXP_CONDICIONALES:ec then  CONTENIDO_IF:ci Else {:if(!ec.getTipo_tabla().toString().equals("Boolean")){error_tipo_no_booleano(ec.getVal(), ecleft, ecright);}:} INDENTACION2 CONTENIDO_IF:cie end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body")); RESULT.getElseBody().addListNode(cie);:}
             ;
 
-BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end espacio If  {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body"));:}
-            |If espacio EXP_CONDICIONALES:ec then INDENTACION2 CONTENIDO_IF_FUNCTION:ci Else INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body")); RESULT.getElseBody().addListNode(cie);:}
+BLOQUE_IF_FUNCTION::=If espacio EXP_CONDICIONALES:ec then  INDENTACION2 CONTENIDO_IF_FUNCTION:ci end {:if(!ec.getTipo_tabla().toString().equals("Boolean")){error_tipo_no_booleano(ec.getVal(), ecleft, ecright);}:} espacio If  {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body"));:}
+            |If espacio EXP_CONDICIONALES:ec then INDENTACION2 CONTENIDO_IF_FUNCTION:ci Else {:if(!ec.getTipo_tabla().toString().equals("Boolean")){error_tipo_no_booleano(ec.getVal(), ecleft, ecright);}:} INDENTACION2 CONTENIDO_IF_FUNCTION:cie end espacio If {:RESULT = new Stmt_If("If"); RESULT.addNode(ec); RESULT.addNode(new Node("body")); RESULT.getBody().addListNode(ci); RESULT.addNode(new Node("else-body")); RESULT.getElseBody().addListNode(cie);:}
             ;
 
 
 
 
 BLOQUE_ASIGNACION::=identificador:id espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);
-                                                                       if(!(tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString().equals(e.getTipo_tabla().toString()))){
+                                                                        boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){
+                                                                        Token tok = tds.get_id_ambitos(id, ambito_actual, "Principal");
+                                                                        if(tok!=null){
+                                                                            if(!(tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString().equals(e.getTipo_tabla().toString()))){
                                                                             error_asignacion(id,tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString(), e.getVal(), e.getTipo_tabla().toString(), idleft, idright);
-                                                                       }
-                                                                       :}
+                                                                            }
+                                                                       }}:}
                |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion("="); RESULT.addNode(new Node(ee)); RESULT.addNode(e);
+                                                                          boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){     
+                                                                     Token tok = tds.get_id_estructura(ee, ambito_actual);
+                                                                        if(tok!=null){
                                                                                 if(!(tds.get_id_estructura(ee, ambito_actual).getTipo().toString().equals(e.getTipo_tabla().toString()))){
                                                                             error_asignacion(ee,tds.get_id_estructura(ee, ambito_actual).getTipo().toString(), e.getVal(), e.getTipo_tabla().toString(), eeleft, eeright);
-                                                                       }
-                                                                        :}
+                                                                       }}
+                                                                        }:}
                ;
 
 BLOQUE_ASIGNACION_FOR::=identificador:id espacio asignacion espacio EXP:e  {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(id)); RESULT.addNode(e);
+                                                                          boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){         
+                                                                         Token tok = tds.get_id_ambitos(id, ambito_actual, "Principal");
+                                                                        if(tok!=null){
                                                                                     if((tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString().equals(e.getTipo_tabla().toString()))){
                                                                                         if(!(e.getTipo_tabla().toString().equals("Integer"))){
                                                                                             error_asignacion_for( idleft, idright);
                                                                                         }
                                                                                     }else{
                                                                                         error_asignacion(id,tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString(), e.getVal(), e.getTipo_tabla().toString(), idleft, idright);
-                                                                                    }
-                                                                            :}
+                                                                                    }}
+                                                                           } :}
                         |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio EXP:e {:RESULT = new Stmt_Asignacion_For("="); RESULT.addNode(new Node(ee)); RESULT.addNode(e);
-
+                                                                                  boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){   
+                                                                         Token tok = tds.get_id_estructura(ee, ambito_actual);
+                                                                        if(tok!=null){
                                                                                     if((tds.get_id_estructura(ee, ambito_actual).getTipo().toString().equals(e.getTipo_tabla().toString()))){
                                                                                     if(!(e.getTipo_tabla().toString().equals("Integer"))){
                                                                                             error_asignacion_for( eeleft, eeright);
                                                                                         }
                                                                        }else{
                                                                             error_asignacion(ee,tds.get_id_estructura(ee, ambito_actual).getTipo().toString(), e.getVal(), e.getTipo_tabla().toString(), eeleft, eeright);
-                                                                       }
+                                                                       }}}
                                                                                   :}
                         ;
 
@@ -467,29 +544,41 @@ DECLARACION_VARIABLE_ESTRUCTURA::=identificador:id espacio as espacio TIPOS:t {:
                                  ;
 
 BLOQUE_LECTURA::=identificador:id  espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(id)); 
-                                                            String ti = tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString();
+                                        Token tok =  tds.get_id_ambitos(id, ambito_actual, "Principal");
+                                        if(tok!=null){
+                                        String ti = tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo().toString();
                                         if(ti.equals("String")||
                                            ti.equals("Integer")||
                                            ti.equals("Boolean")){
                                       }else{
                                         error_read(id,ti, idleft, idright);
-                                      }:}
+                                      }}:}
                  |ELEMENTOS_ESTRUCTUA:ee espacio asignacion espacio console punto read abrirparentesis cerrarparentesis {:RESULT = new Stmt_Lectura("read"); RESULT.addNode(new Node(ee));
-                                                 String ti = tds.get_id_estructura(ee, ambito_actual).getTipo().toString();
+                                        Token tok = tds.get_id_estructura(ee, ambito_actual);
+                                        String ti = tds.get_id_estructura(ee, ambito_actual).getTipo().toString();
+                                        if(tok!=null){
+                                        
                                         if(ti.equals("String")||
                                            ti.equals("Integer")||
                                            ti.equals("Boolean")){
                                       }else{
                                         error_read(ee,ti, eeleft, eeright);
-                                      }:}
+                                      }}:}
                  ;
 
 BLOQUE_ESCRITURA::=console  punto write abrirparentesis EXP:e cerrarparentesis {:RESULT = new Stmt_Escritura("write"); RESULT.addNode(e);
+                                                    boolean existen_ids = true;
+                                                                if(e.isTypeIdentificador()){
+                                                                if(tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null )
+                                                                    existen_ids = false;
+                                                                    }
+                                                                        if(existen_ids){
                                                     if(e.getTipo_tabla().toString().equals("String") ||
                                                        e.getTipo_tabla().toString().equals("Integer") ||
                                                       e.getTipo_tabla().toString().equals("Boolean") ){
                                                     }else{
                                                          error_write(e.getVal(),e.getTipo_tabla().toString(), eleft, eright);
+                                                    }
                                                     }
                                             :}
                  ;

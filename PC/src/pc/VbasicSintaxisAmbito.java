@@ -814,10 +814,10 @@ public class VbasicSintaxisAmbito extends java_cup.runtime.lr_parser {
 
      public static int errors = 0;
      public  int errors_count =0;
+     public  int sintax_errors_count =0;
 public void report_error(String message, Object info) {
     if (info instanceof String){
         errors++;
-	errors_count++; 
       /*System.err.println( info + " "+ message);*/
     }
     else {
@@ -827,9 +827,11 @@ public void report_error(String message, Object info) {
     	m.append(" : "+message);   
     	System.err.println(m);
     }
+      sintax_errors_count++;
   }
    
   public void report_fatal_error() {
+    sintax_errors_count++;
     //report_error(message, info);
     throw new RuntimeException("Fatal Syntax Error");
   }
@@ -861,8 +863,13 @@ public void report_error(String message, Object info) {
 
     public void error_uso_estructuras(String id, String tipo,String registro, int line, int column){
         errors_count++;
+        if(!registro.equals("--")){
         System.err.println("Error (line: "+line+", column: "+column+",  la variable: "+id+" en el registro: "+registro+" es del tipo básico o el registro: "
                                     +tipo+" no ha sido declarado): Semantic error");
+        }else{
+        System.err.println("Error (line: "+line+", column: "+column+",  la variable: "+id+" es del tipo básico o el registro: "
+                                    +tipo+" no ha sido declarado): Semantic error");
+        }
     }
 
     public void  error_registro_no_existe_var (String id,String registro, int line, int column){

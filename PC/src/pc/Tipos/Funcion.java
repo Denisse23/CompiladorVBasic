@@ -19,6 +19,7 @@ public class Funcion extends Tipo{
     public Funcion(){
         this.setName("Proc");
         Params = new ArrayList();
+        retorno = new voidt();
     }
     
     public void setRetorno(Tipo r){
@@ -35,6 +36,9 @@ public class Funcion extends Tipo{
     
     public String toStringSinRetorno(){
         String con ="";
+        if(Params.size()==0){
+            con="Void";
+        }
         for(int i=0;i<Params.size();i++){
             if(i==0)
                 con+=Params.get(i).toString();
@@ -49,6 +53,9 @@ public class Funcion extends Tipo{
     @Override
     public String toString(){
         String con ="";
+        if(Params.size()==0){
+            con="Void";
+        }
         for(int i=0;i<Params.size();i++){
             if(i==0)
                 con+=Params.get(i).toString();

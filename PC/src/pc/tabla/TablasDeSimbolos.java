@@ -213,7 +213,7 @@ public class TablasDeSimbolos {
 
     public Token get_id_estructura(String idcompuesta, String ambito_actual) {
         Token enviar = null;
-        String[] ids = idcompuesta.split("\\.");///////// buscar si existen los nombres de variables dentro de los registros(type)
+        String[] ids = idcompuesta.split("\\.");
 
         enviar = get_id_ambitos(ids[0], ambito_actual, "Principal");
         for (int i = 1; i < ids.length; i++) {

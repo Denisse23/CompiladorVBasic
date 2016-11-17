@@ -16,6 +16,7 @@ import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import static java.util.Collections.list;
 import java.util.List;
 import javax.swing.JFileChooser;
@@ -216,26 +217,22 @@ public class Ventana extends javax.swing.JFrame {
                 VbasicSintaxisAmbito p = new VbasicSintaxisAmbito(scanner);
                 p.parse();
                 tds = p.t_simbolos;
-                if (p.errors_count == 0) {
                     VbasicTiposArbol vt = new VbasicTiposArbol(scanner2);
                     vt.setTablasDeSimbolos(tds);
                     vt.parse();
                     
-                    if (vt.errors_count == 0) {
+                    if (p.sintax_errors_count == 0) {
                         ArbolAbstracto = vt.programaT;
                         try {
                             DefaultTreeModel model1 = (DefaultTreeModel) this.tree.getModel();
                             model1.setRoot(ArbolAbstracto.toNodeP());
                             this.tree.setModel(model1);
-                        } catch (Exception e) {
-                            System.out.println(e);
-                        }
+                        } catch (Exception e) {}
                     }
-                }
+                
             } catch (Exception e) {
-                System.out.println(e);
+                //System.out.println(e);
             }
-
             txtaCodigo.setText(baos.toString());
             System.err.flush();
             System.setErr(old);

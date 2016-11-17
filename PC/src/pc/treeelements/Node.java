@@ -18,11 +18,13 @@ public class Node {
     String val;
     ArrayList<Node> hijos;
     Tipo tipo_tabla;
+    boolean typeIdentificador;
    
     public Node(String v ){
         val= v;
         hijos = new ArrayList();
         tipo_tabla = new voidt();
+        typeIdentificador = false;
       
     }
     
@@ -62,6 +64,16 @@ public class Node {
         else
             return false;
     }
+
+    public boolean isTypeIdentificador() {
+        return typeIdentificador;
+    }
+
+    public void setTypeIdentificador(boolean typeIdentificador) {
+        this.typeIdentificador = typeIdentificador;
+    }
+    
+    
     
     
     
