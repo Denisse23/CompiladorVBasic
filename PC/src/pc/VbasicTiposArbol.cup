@@ -317,8 +317,6 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                         error_tipos_diferentes_exp(ec.getVal(), ec2.getVal(), ol,ecleft, ecright);
                       }
                     :}
-                    |abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2  {:RESULT = ec; RESULT.setTipo_tabla(ec.getTipo_tabla());:}
-                    |not espacio abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(ec); RESULT.setTipo_tabla(ec.getTipo_tabla());:}
                     ;   
 
 
@@ -360,6 +358,7 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); 
                                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(),om, eleft, eright);
                                       }}:}
        |VALORES:v INDENTACION2 {:RESULT =  v; :}
+       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla());:}
        ;
 
 VALORES::=identificador:id {:RESULT = new Exp(id);RESULT.setTypeIdentificador(true);RESULT.setTipo_tabla((tds.get_id_ambitos(id, ambito_actual, "Principal")!=null?tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo():new voidt()));:}
