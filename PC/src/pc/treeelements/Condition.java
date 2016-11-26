@@ -5,14 +5,14 @@
  */
 package pc.treeelements;
 
+import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
  * @author Denisse
  */
-public class Condition extends Node {
-    
+public class Condition extends Exp{
     public Condition(String v) {
         super(v);
     }
@@ -32,6 +32,16 @@ public class Condition extends Node {
             return null;
         }
     }
+    @Override
+    public  ArrayList<Node> getHijos(){
+        ArrayList<Node> h = new ArrayList();
+        if(!isLeaf()){
+            h.add(getLeft());
+            h.add(getRight());
+        }
+        
+        return h;
+   }
     @Override
     public void toNode(DefaultMutableTreeNode dmtn){
             DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);

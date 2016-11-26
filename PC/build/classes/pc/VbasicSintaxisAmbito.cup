@@ -143,7 +143,7 @@ terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, ty
 terminal function,  coma, end,  then, to, next,  loop, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
-terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
+terminal String tipoparametro, tipovar, truefalse, oplogand, oplogor, oprel, opsum, opmult, identificador;
 terminal String espacio, newline, tab, cadena, comentario, numero;
 
 
@@ -192,11 +192,14 @@ non terminal String CODIGO_FUNCION;
 
 
 
-precedence left opsum;
-precedence left espacio;
-precedence left opmult;
 
-precedence left not, oplog;
+precedence left opsum;
+precedence left opmult;
+precedence left oprel;
+precedence left oplogor;
+precedence left oplogand;
+precedence left not;
+
 
 INICIO::= PROGRAMA:p {::}
          |newline PROGRAMA:p {::}
@@ -408,12 +411,15 @@ ARGUMENTOS::=EXP:e {::}
 
 EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {::}
                     |EXP:e asignacion:a espacio EXP:e2 {::} 
-                    |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {::}
+                    |EXP_CONDICIONALES:ec oplogor:olo INDENTACION2 EXP_CONDICIONALES:ec2 {::}
+                    |EXP_CONDICIONALES:ec oplogand:ola INDENTACION2 EXP_CONDICIONALES:ec2 {::}
+                    |abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2
+                    |not espacio  abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2
                     ;   
 
 
-EXP::= EXP:e opsum:os espacio EXP:e2 {::}
-       |EXP:e opmult:om espacio EXP:e2 {::}
+EXP::= EXP:e opsum:os INDENTACION2 EXP:e2 {::}
+       |EXP:e opmult:om INDENTACION2 EXP:e2 {::}
        |VALORES:v INDENTACION2 {::}
        |not espacio VALORES:v INDENTACION2 {::}
        ;

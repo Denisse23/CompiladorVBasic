@@ -74,6 +74,11 @@ parser code {:
         System.err.println("Error (line: "+line+", column: "+column+", el tipo de retorno de la función: "+id+" es: "+tipoid+", y la expresión: "+exp+" es de tipo: "+tipoexp+"): Semantic error");
     }
 
+    public void error_op_not(String valor, String tipo, int line, int column){
+        errors_count++;
+        System.err.println("Error (line: "+line+", column: "+column+", no se puede utilizar el operador "+"'not'"+" de tipo Boolean, con: "+valor+" que es de tipo: "+tipo+"): Semantic error");
+    }
+
     
     public Programa programaT;
     public String ambito_actual="1";
@@ -85,7 +90,7 @@ terminal sub, abrirparentesis, cerrarparentesis, write, read, console, punto, ty
 terminal function,  coma, end,  then, to, next,  loop, dim, as, not;
 terminal Do, If, For, While, Return, Else; //palabras reservadas de java
 
-terminal String tipoparametro, tipovar, truefalse, oplog, oprel, opsum, opmult, identificador;
+terminal String tipoparametro, tipovar, truefalse, oplogand, oplogor, oprel, opsum, opmult, identificador;
 terminal String espacio, newline, tab, cadena, comentario, numero;
 
 
@@ -132,11 +137,15 @@ non terminal String ELEMENTOS_ESTRUCTUA;
 
 
 
-precedence left opsum;
-precedence left espacio;
-precedence left opmult;
 
-precedence left not, oplog;
+precedence left opsum;
+precedence left opmult;
+precedence left oprel;
+precedence left oplogor;
+precedence left oplogand;
+precedence left not;
+
+
 
 INICIO::=PROGRAMA:p {:programaT = p; if(!tds.hay_main()){ error_no_main();} :}
          |newline PROGRAMA:p {:RESULT = p; programaT = p; if(!tds.hay_main()){ error_no_main();}:}
@@ -303,24 +312,40 @@ EXP_CONDICIONALES::=EXP:e oprel:opr espacio EXP:e2 {:RESULT = new Condition(opr)
                       }
 
                      }:} 
-                    |EXP_CONDICIONALES:ec oplog:ol espacio EXP_CONDICIONALES:ec2 {:RESULT = new Condition(ol); RESULT.addNode(ec); RESULT.addNode(ec2);
+                     |EXP_CONDICIONALES:ec oplogor:olo INDENTACION2 EXP_CONDICIONALES:ec2 {:RESULT = new Condition(olo); RESULT.addNode(ec); RESULT.addNode(ec2);
                         if(ec.getTipo_tabla().toString().equals(ec2.getTipo_tabla().toString())){
                         if(ec.getTipo_tabla().toString().equals("Boolean")){
                             RESULT.setTipo_tabla(new booleant());}
                         else{
                             ///ya tiene tipo void por default 
-                            error_tipo_no_numerico_exp(ec.getVal(), ec2.getVal(),ol, ecleft, ecright);
+                            error_tipo_no_numerico_exp(ec.getVal(), ec2.getVal(),olo, ecleft, ecright);
                         }
 
                      }else{
                         ///ya tiene tipo void por default 
-                        error_tipos_diferentes_exp(ec.getVal(), ec2.getVal(), ol,ecleft, ecright);
+                        error_tipos_diferentes_exp(ec.getVal(), ec2.getVal(), olo,ecleft, ecright);
                       }
                     :}
+                    |EXP_CONDICIONALES:ec oplogand:ola INDENTACION2 EXP_CONDICIONALES:ec2 {:RESULT = new Condition(ola); RESULT.addNode(ec); RESULT.addNode(ec2);
+                        if(ec.getTipo_tabla().toString().equals(ec2.getTipo_tabla().toString())){
+                        if(ec.getTipo_tabla().toString().equals("Boolean")){
+                            RESULT.setTipo_tabla(new booleant());}
+                        else{
+                            ///ya tiene tipo void por default 
+                            error_tipo_no_numerico_exp(ec.getVal(), ec2.getVal(),ola, ecleft, ecright);
+                        }
+
+                     }else{
+                        ///ya tiene tipo void por default 
+                        error_tipos_diferentes_exp(ec.getVal(), ec2.getVal(), ola,ecleft, ecright);
+                      }
+                    :}
+                    |abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2  {:RESULT = ec; RESULT.setTipo_tabla(ec.getTipo_tabla());:}
+                    |not espacio abrirparentesis EXP_CONDICIONALES:ec cerrarparentesis INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(ec); RESULT.setTipo_tabla(ec.getTipo_tabla());:}
                     ;   
 
 
-EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2); 
+EXP::= EXP:e opsum:os INDENTACION2 EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); RESULT.addNode(e2); 
                                     boolean existen_ids = true;
                                      if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
                                      || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
@@ -339,7 +364,7 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); 
                                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(),os, eleft, eright);
                                         
                                       }}:}
-       |EXP:e opmult:om espacio EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);
+       |EXP:e opmult:om INDENTACION2 EXP:e2 {:RESULT = new Exp(om); RESULT.addNode(e); RESULT.addNode(e2);
                                         boolean existen_ids = true;
                                      if((e.isTypeIdentificador() && tds.get_id_ambitos(e.getVal(), ambito_actual, "Principal")==null)
                                      || (e2.isTypeIdentificador() &&tds.get_id_ambitos(e2.getVal(), ambito_actual, "Principal")==null )){
@@ -358,7 +383,12 @@ EXP::= EXP:e opsum:os espacio EXP:e2 {:RESULT = new Exp(os); RESULT.addNode(e); 
                                         error_tipos_diferentes_exp(e.getVal(), e2.getVal(),om, eleft, eright);
                                       }}:}
        |VALORES:v INDENTACION2 {:RESULT =  v; :}
-       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla());:}
+       |not espacio VALORES:v INDENTACION2 {:RESULT = new Not("not"); RESULT.addNode(v); RESULT.setTipo_tabla(v.getTipo_tabla()); 
+                                                        if(!(v.getTipo_tabla().toString().equals("Boolean"))){
+                                                            error_op_not(v.getVal(),v.getTipo_tabla().toString(), vleft, vright);
+                                                        }
+
+                                            :}
        ;
 
 VALORES::=identificador:id {:RESULT = new Exp(id);RESULT.setTypeIdentificador(true);RESULT.setTipo_tabla((tds.get_id_ambitos(id, ambito_actual, "Principal")!=null?tds.get_id_ambitos(id, ambito_actual, "Principal").getTipo():new voidt()));:}

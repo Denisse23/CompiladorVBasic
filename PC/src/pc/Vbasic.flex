@@ -41,7 +41,8 @@ AS = As
 TIPOVAR = Integer|String|Boolean
 TRUEFALSE = True|False
 NOT = Not
-OPLOG = And|Or|Xor
+OPLOGAND = And
+OPLOGOR = Or
 OPREL = ">"|"<"|">="|"<="|"<>"
 ASIGNACION = "="
 OPMULT = "*"|"/"
@@ -137,7 +138,8 @@ COMENTARIO = "'"[^\n]*
 	{TIPOVAR}  		{return symbol(tipovar, yytext());}
         {TRUEFALSE}  		{return symbol(truefalse, yytext());}
 	{NOT} 			{return symbol(not);}
-	{OPLOG}  		{return symbol(oplog, yytext());}
+	{OPLOGAND}  		{return symbol(oplogand, yytext());}
+        {OPLOGOR}  		{return symbol(oplogor, yytext());}
 	{OPREL} 		{return symbol(oprel, yytext());}
         {ASIGNACION}  		{return symbol(asignacion);}
         {OPMULT}  		{return symbol(opmult, yytext());}

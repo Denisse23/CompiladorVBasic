@@ -5,6 +5,7 @@
  */
 package pc.treeelements;
 
+import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -32,6 +33,17 @@ public class Exp extends Node {
             return null;
         }
     }
+    
+    @Override
+    public  ArrayList<Node> getHijos(){
+        ArrayList<Node> h = new ArrayList();
+        if(!isLeaf()){
+            h.add(getLeft());
+            h.add(getRight());
+        }
+        
+        return h;
+   }
     @Override
     public void toNode(DefaultMutableTreeNode dmtn){
             DefaultMutableTreeNode nodo = new DefaultMutableTreeNode(val);

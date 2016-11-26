@@ -19,13 +19,18 @@ public class Node {
     ArrayList<Node> hijos;
     Tipo tipo_tabla;
     boolean typeIdentificador;
+    public String siguiente;
+    public String verdadera;
+    public String falsa;
    
     public Node(String v ){
         val= v;
         hijos = new ArrayList();
         tipo_tabla = new voidt();
         typeIdentificador = false;
-      
+        siguiente = "";
+        verdadera = "";
+        falsa = "";
     }
     
     public void addNode(Node n){
@@ -73,6 +78,16 @@ public class Node {
         this.typeIdentificador = typeIdentificador;
     }
     
+    public  ArrayList<Node> getHijos(){
+        ArrayList<Node> h = new ArrayList();
+        if(!isLeaf()){
+            //////////////se envian al reves, porque la entrada al arbol fue en orden inverso 
+            for(int i=hijos.size()-1;i>=0;i--)
+                h.add(hijos.get(i));
+        }
+        
+        return h;
+   }
     
     
     

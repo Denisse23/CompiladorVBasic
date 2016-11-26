@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pc.cuadruplos;
+package pc.CodigoIntermedio;
 
 import java.util.ArrayList;
 
@@ -14,10 +14,11 @@ import java.util.ArrayList;
 public class Cuadruplos {
     ArrayList<CuadruploRow> rows;
     private String temporal;
-    
+    private String etiqueta;
     public Cuadruplos(){
         rows = new ArrayList();
         temporal = "t0";
+        etiqueta = "ETIQUE0";
     }
 
         
@@ -41,4 +42,17 @@ public class Cuadruplos {
         temporal = temporal.substring(0, 1) + getNextTemporal();
         return temporal ;
     }
+    
+     private int getNextEtiqueta(){
+        return Integer.parseInt(etiqueta.substring(6)) + 1;
+    }
+    public String etiquetaNueva(){
+        etiqueta = etiqueta.substring(0, 6) + getNextEtiqueta();
+        return etiqueta ;
+    }
+    
+    public String getLastTemp(){
+        return temporal;
+    }
+    
 }

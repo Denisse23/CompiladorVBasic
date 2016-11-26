@@ -5,6 +5,7 @@
  */
 package pc.treeelements;
 
+import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -31,6 +32,17 @@ public class Stmt_While extends Node{
             return null;
         }
     }
+    
+    @Override
+    public  ArrayList<Node> getHijos(){
+        ArrayList<Node> h = new ArrayList();
+        if(!isLeaf()){
+            h.add(getCondition());
+            h.add(getBody());
+        }
+        
+        return h;
+   }
     
     
     @Override
