@@ -44,6 +44,22 @@ public class RecorridoArbol {
                     ((Stmt_If) hijo).siguiente = cuadruplos.etiquetaNueva();
                     insertIf(hijo);
                 }
+                
+                if(hijo instanceof Stmt_For){
+                    insertFor(hijo);
+                }
+                
+                if(hijo instanceof Stmt_While){
+                    insertWhile(hijo);
+                }
+                
+                if(hijo instanceof Stmt_Llamada_Funcion){
+                    insertLlamada(hijo);
+                }
+                
+                if(hijo instanceof Stmt_Lectura){
+                    insertLectura(hijo);
+                }
             }
         }
     }
@@ -144,6 +160,41 @@ public class RecorridoArbol {
             PreOrden(((Stmt_If) n).getElseBody());
             cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_If) n).getElseBody().siguiente, "", "");
         }
+    }
+    
+    public void insertFor(Node n){
+        String t = insertExp(((Stmt_Asignacion_For)(((Stmt_For)n).getAsignacion())).getExp());
+        ((Stmt_For)n).comienzo = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("ETIQUE", "ETIQUE" + ((Stmt_For)n).comienzo, "", "");
+        String t1 = cuadruplos.etiquetaNueva();
+        String finFor = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("if<=",t,((Stmt_For)n).getExpTo().getVal(),"GOTO "+t1);
+        cuadruplos.generarCuadruplo("GOTO ", finFor, "", "");
+        cuadruplos.generarCuadruplo("ETIQUE", t1, "","");
+        PreOrden(((Stmt_For) n).getBody());
+        cuadruplos.generarCuadruplo("+",t,"1",t);
+        cuadruplos.generarCuadruplo("GOTO", n.comienzo, "", "");
+        cuadruplos.generarCuadruplo("ETIQUE",finFor,"","");
+    }
+    
+    public void insertWhile(Node n){
+        String t1 = ((Condition)(((Stmt_While)n).getCondition())).getLeft().getVal();
+        String t2 = ((Condition)(((Stmt_While)n).getCondition())).getRight().getVal();
+        String t3 = ((Condition)(((Stmt_While)n).getCondition())).getVal();
+        String etiqComienzo = cuadruplos.getLastEtiqueta();
+        String etiqFin = cuadruplos.etiquetaNueva();
+        String etiqt = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("If "+t3,t1,t2,"GOTO "+etiqt);
+        cuadruplos.generarCuadruplo("GOTO", etiqFin, "", "");
+        cuadruplos.generarCuadruplo("EIQUE",etiqt,"","");
+        PreOrden(((Stmt_While)n).getBody());
+        cuadruplos.generarCuadruplo("GOTO", etiqComienzo, "", "");
+        cuadruplos.generarCuadruplo("ETIQUE",etiqFin,"","");
+    }
+    
+    public void insertLectura(Node n){
+        String t1 = cuadruplos.temporalNuevo();
+        cuadruplos.generarCuadruplo("READ",((Stmt_Lectura)n).getIdentificador().getVal(),"","");
     }
 
     public void insertExpCondicional(Node n) {

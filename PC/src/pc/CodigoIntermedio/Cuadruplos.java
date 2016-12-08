@@ -55,4 +55,8 @@ public class Cuadruplos {
         return temporal;
     }
     
+    public String getLastEtiqueta(){
+        return etiqueta;
+    }
+    
 }

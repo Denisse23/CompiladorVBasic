@@ -22,6 +22,7 @@ public class Node {
     public String siguiente;
     public String verdadera;
     public String falsa;
+    public String comienzo;
    
     public Node(String v ){
         val= v;
