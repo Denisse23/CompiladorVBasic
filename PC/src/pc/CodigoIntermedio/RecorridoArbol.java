@@ -5,6 +5,7 @@
  */
 package pc.CodigoIntermedio;
 
+import pc.tabla.TablasDeSimbolos;
 import pc.treeelements.Node;
 import pc.treeelements.*;
 
@@ -15,13 +16,16 @@ import pc.treeelements.*;
 public class RecorridoArbol {
 
     Cuadruplos cuadruplos;
+    TablasDeSimbolos tds;
 
-    public RecorridoArbol() {
+    public RecorridoArbol(TablasDeSimbolos tds) {
+        this.tds = tds;
         cuadruplos = new Cuadruplos();
     }
 
     public void PreOrden(Node ast) {
         for (Node hijo : ast.getHijos()) {
+
             if (!hijo.isLeaf()) {
 
                 if (hijo instanceof Stmt_Procedimiento) {
@@ -41,37 +45,50 @@ public class RecorridoArbol {
                 }
 
                 if (hijo instanceof Stmt_If) {
-                    ((Stmt_If) hijo).siguiente = cuadruplos.etiquetaNueva();
+
+                    hijo.siguiente = cuadruplos.etiquetaNueva();
                     insertIf(hijo);
+                    cuadruplos.generarCuadruplo("ETIQUE", hijo.siguiente, "", "");
                 }
-                
-                if(hijo instanceof Stmt_For){
+
+                if (hijo instanceof Stmt_For) {
+                    hijo.siguiente = cuadruplos.etiquetaNueva();
                     insertFor(hijo);
+                    cuadruplos.generarCuadruplo("ETIQUE", hijo.siguiente, "", "");
                 }
-                
-                if(hijo instanceof Stmt_While){
+
+                if (hijo instanceof Stmt_While) {
+                    hijo.siguiente = cuadruplos.etiquetaNueva();
                     insertWhile(hijo);
+                    cuadruplos.generarCuadruplo("ETIQUE", hijo.siguiente, "", "");
                 }
-                
-                if(hijo instanceof Stmt_Llamada_Funcion){
+
+                if (hijo instanceof Stmt_Llamada_Funcion) {
                     insertLlamada(hijo);
                 }
-                
-                if(hijo instanceof Stmt_Lectura){
+
+                if (hijo instanceof Stmt_Lectura) {
                     insertLectura(hijo);
+                }
+
+                if (hijo instanceof Stmt_Escritura) {
+                    insertEscritura(hijo);
                 }
             }
         }
+
     }
 
     public void insertProcedimiento(Node n) {
         cuadruplos.generarCuadruplo("ETIQUEFUNC", "ETIQUE" + "FUNC" + ((Stmt_Procedimiento) n).getIdentificador().getVal(), "", "");
         PreOrden(((Stmt_Procedimiento) n).getBody());
+        cuadruplos.generarCuadruplo("FINETIQUEFUNC", "ETIQUE" + "FUNC" + ((Stmt_Procedimiento) n).getIdentificador().getVal(), "", "");
     }
 
     public void insertFuncion(Node n) {
         cuadruplos.generarCuadruplo("ETIQUEFUNC", "ETIQUE" + "FUNC" + ((Stmt_Funcion) n).getIdentificador().getVal(), "", "");
         PreOrden(((Stmt_Funcion) n).getBody());
+        cuadruplos.generarCuadruplo("FINETIQUEFUNC", "ETIQUE" + "FUNC" + ((Stmt_Funcion) n).getIdentificador().getVal(), "", "");
     }
 
     public void insertReturn(Node n) {
@@ -79,14 +96,25 @@ public class RecorridoArbol {
         if (!((Stmt_Return) n).getExp().isLeaf()) {
             t = insertExp(((Stmt_Return) n).getExp());
         } else {
-            t = ((Stmt_Return) n).getExp().getVal();
+            if(!((Stmt_Return) n).getExp().getVal().contains(".")){
+               t = ((Stmt_Return) n).getExp().getVal();
+            }else{
+                int place =tds.get_offset_type(((Stmt_Return) n).getExp().getVal());
+                t = ((Stmt_Return) n).getExp().getVal().split("\\.")[0]+"["+place+"]";
+            }
+          
         }
         cuadruplos.generarCuadruplo("RET", "", "", t);
     }
 
     public void insertAsignacion(Node n) {
         String t = insertExp(((Stmt_Asignacion) n).getExp());
-        cuadruplos.generarCuadruplo("=", t, "", ((Stmt_Asignacion) n).getIdentificador().getVal());
+        if(!((Stmt_Asignacion) n).getIdentificador().getVal().contains(".")){
+           cuadruplos.generarCuadruplo("=", t, "", ((Stmt_Asignacion) n).getIdentificador().getVal());
+        }else{
+            int place =tds.get_offset_type(((Stmt_Asignacion) n).getIdentificador().getVal());
+            cuadruplos.generarCuadruplo("=", t, "", ((Stmt_Asignacion) n).getIdentificador().getVal().split("\\.")[0]+"["+place+"]");
+        }
     }
 
     public String insertExp(Node n) {
@@ -95,8 +123,15 @@ public class RecorridoArbol {
         String t2 = "";
         if (n.isLeaf()) {
             t = cuadruplos.temporalNuevo();
-            cuadruplos.generarCuadruplo("=", n.getVal(), "", t);
-        } else {
+            if(!n.getVal().contains(".")){
+                cuadruplos.generarCuadruplo("=", n.getVal(), "", t);
+            }else{
+                 int place =tds.get_offset_type(n.getVal());
+                cuadruplos.generarCuadruplo("=", n.getVal().split("\\.")[0]+"["+place+"]", "", t);
+            }
+        } else if(n instanceof Stmt_Llamada_Funcion){
+            t = insertLlamada(n);
+        }else {
             if (!((Exp) n).getLeft().isLeaf()) {
                 if (((Exp) n).getLeft() instanceof Stmt_Llamada_Funcion) {
                     t1 = insertLlamada(((Exp) n).getLeft());
@@ -122,8 +157,17 @@ public class RecorridoArbol {
         int cont = 0;
         String t = "";
         for (Node ar : ((Stmt_Llamada_Funcion) n).getArguments().getHijos()) {
-            t = insertExp(((Stmt_Argumento) ar).getExp());
-            cuadruplos.generarCuadruplo("PARAM", "", "", t);
+            if (!((Stmt_Argumento) ar).getExp().isLeaf()) {
+                t = insertExp(((Stmt_Argumento) ar).getExp());
+                cuadruplos.generarCuadruplo("PARAM", t, "", "");
+            } else {
+                if(!((Stmt_Argumento) ar).getExp().getVal().contains(".")){
+                    cuadruplos.generarCuadruplo("PARAM", ((Stmt_Argumento) ar).getExp().getVal(), "", "");
+                }else{
+                    int place =tds.get_offset_type(((Stmt_Argumento) ar).getExp().getVal());
+                    cuadruplos.generarCuadruplo("PARAM", ((Stmt_Argumento) ar).getExp().getVal().split("\\.")[0]+"["+place+"]", "", "");
+                }
+            }
             cont++;
         }
         cuadruplos.generarCuadruplo("CALL", ((Stmt_Llamada_Funcion) n).getIdentificador().getVal(), cont + "", "");
@@ -132,10 +176,20 @@ public class RecorridoArbol {
 
     public String AscendenteExp(Node n, String t1, String t2) {
         if (t1.equals("")) {
-            t1 = ((Exp) n).getLeft().getVal();
+            if(!((Exp) n).getLeft().getVal().contains(".")){
+                t1 = ((Exp) n).getLeft().getVal();
+            }else{
+                 int place =tds.get_offset_type(((Exp) n).getLeft().getVal());
+                 t1 = ((Exp) n).getLeft().getVal().split("\\.")[0]+"["+place+"]";
+            } 
         }
         if (t2.equals("")) {
-            t2 = ((Exp) n).getRight().getVal();
+            if(!((Exp) n).getRight().getVal().contains(".")){
+                t2 = ((Exp) n).getRight().getVal();
+             }else{
+                 int place =tds.get_offset_type(((Exp) n).getRight().getVal());
+                 t2 = ((Exp) n).getRight().getVal().split("\\.")[0]+"["+place+"]";
+            } 
         }
         String temp = cuadruplos.temporalNuevo();
         cuadruplos.generarCuadruplo(n.getVal(), t1, t2, temp);
@@ -158,43 +212,67 @@ public class RecorridoArbol {
             cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_If) n).getCondition().falsa, "", "");
             ((Stmt_If) n).getElseBody().siguiente = n.siguiente;
             PreOrden(((Stmt_If) n).getElseBody());
-            cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_If) n).getElseBody().siguiente, "", "");
+        }
+
+    }
+
+    public void insertFor(Node n) {
+        String t = insertExp(((Stmt_Asignacion_For) (((Stmt_For) n).getAsignacion())).getExp());
+        String identificador =  ((Stmt_Asignacion_For) ((Stmt_For) n).getAsignacion()).getIdentificadorOVar().getVal();
+        if(identificador.contains(".")){
+            int place = tds.get_offset_type(identificador);
+            identificador = identificador.split("\\.")[0]+"["+place+"]";
+        }
+        cuadruplos.generarCuadruplo("=", t, "", identificador);
+        ((Stmt_For) n).comienzo = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_For) n).comienzo, "", "");
+        String et = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("if<=",  identificador, ((Stmt_For) n).getExpTo().getVal(), "GOTO " + et);
+        cuadruplos.generarCuadruplo("GOTO ", n.siguiente, "", "");
+        cuadruplos.generarCuadruplo("ETIQUE", et, "", "");
+        ((Stmt_For) n).getBody().siguiente = cuadruplos.etiquetaNueva();
+        PreOrden(((Stmt_For) n).getBody());
+        cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_For) n).getBody().siguiente, "", "");
+        cuadruplos.generarCuadruplo("+",identificador, "1", cuadruplos.temporalNuevo());
+        cuadruplos.generarCuadruplo("=", cuadruplos.getLastTemp(), "", identificador);
+        cuadruplos.generarCuadruplo("GOTO", n.comienzo, "", "");
+
+    }
+
+    public void insertWhile(Node n) {
+        n.comienzo = cuadruplos.etiquetaNueva();
+        cuadruplos.generarCuadruplo("ETIQUE", n.comienzo, "", "");
+        ((Stmt_While) n).getCondition().verdadera = cuadruplos.etiquetaNueva();
+        ((Stmt_While) n).getCondition().falsa = n.siguiente;
+
+        insertExpCondicional(((Stmt_While) n).getCondition());
+        cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_While) n).getCondition().verdadera, "", "");
+        ((Stmt_While) n).getBody().siguiente = n.comienzo;
+        PreOrden(((Stmt_While) n).getBody());
+        cuadruplos.generarCuadruplo("GOTO", n.comienzo, "", "");
+    }
+
+    public void insertLectura(Node n) {
+        if(!((Stmt_Lectura) n).getIdentificador().getVal().contains(".")){
+            cuadruplos.generarCuadruplo("READ", ((Stmt_Lectura) n).getIdentificador().getVal(), "", "");
+        }else{
+           int place =tds.get_offset_type(((Stmt_Lectura) n).getIdentificador().getVal());
+            cuadruplos.generarCuadruplo("READ", ((Stmt_Lectura) n).getIdentificador().getVal().split("\\.")[0]+"["+place+"]", "", "");
         }
     }
-    
-    public void insertFor(Node n){
-        String t = insertExp(((Stmt_Asignacion_For)(((Stmt_For)n).getAsignacion())).getExp());
-        ((Stmt_For)n).comienzo = cuadruplos.etiquetaNueva();
-        cuadruplos.generarCuadruplo("ETIQUE", "ETIQUE" + ((Stmt_For)n).comienzo, "", "");
-        String t1 = cuadruplos.etiquetaNueva();
-        String finFor = cuadruplos.etiquetaNueva();
-        cuadruplos.generarCuadruplo("if<=",t,((Stmt_For)n).getExpTo().getVal(),"GOTO "+t1);
-        cuadruplos.generarCuadruplo("GOTO ", finFor, "", "");
-        cuadruplos.generarCuadruplo("ETIQUE", t1, "","");
-        PreOrden(((Stmt_For) n).getBody());
-        cuadruplos.generarCuadruplo("+",t,"1",t);
-        cuadruplos.generarCuadruplo("GOTO", n.comienzo, "", "");
-        cuadruplos.generarCuadruplo("ETIQUE",finFor,"","");
-    }
-    
-    public void insertWhile(Node n){
-        String t1 = ((Condition)(((Stmt_While)n).getCondition())).getLeft().getVal();
-        String t2 = ((Condition)(((Stmt_While)n).getCondition())).getRight().getVal();
-        String t3 = ((Condition)(((Stmt_While)n).getCondition())).getVal();
-        String etiqComienzo = cuadruplos.getLastEtiqueta();
-        String etiqFin = cuadruplos.etiquetaNueva();
-        String etiqt = cuadruplos.etiquetaNueva();
-        cuadruplos.generarCuadruplo("If "+t3,t1,t2,"GOTO "+etiqt);
-        cuadruplos.generarCuadruplo("GOTO", etiqFin, "", "");
-        cuadruplos.generarCuadruplo("EIQUE",etiqt,"","");
-        PreOrden(((Stmt_While)n).getBody());
-        cuadruplos.generarCuadruplo("GOTO", etiqComienzo, "", "");
-        cuadruplos.generarCuadruplo("ETIQUE",etiqFin,"","");
-    }
-    
-    public void insertLectura(Node n){
-        String t1 = cuadruplos.temporalNuevo();
-        cuadruplos.generarCuadruplo("READ",((Stmt_Lectura)n).getIdentificador().getVal(),"","");
+
+    public void insertEscritura(Node n) {
+        if (!((Stmt_Escritura) n).getExp().isLeaf()) {
+            String t = insertExp((Exp)((Stmt_Escritura) n).getExp());
+            cuadruplos.generarCuadruplo("PRINT", t, "", "");
+        } else {
+             if(!((Stmt_Escritura) n).getExp().getVal().contains(".")){
+                 cuadruplos.generarCuadruplo("PRINT", ((Stmt_Escritura) n).getExp().getVal(), "", "");
+             }else{
+                 int place =tds.get_offset_type(((Stmt_Escritura) n).getExp().getVal());
+                 cuadruplos.generarCuadruplo("PRINT", ((Stmt_Escritura) n).getExp().getVal().split("\\.")[0]+"["+place+"]", "", "");
+             }
+        }
     }
 
     public void insertExpCondicional(Node n) {
@@ -224,44 +302,54 @@ public class RecorridoArbol {
     }
 
     public void AscendenteExpCondicional(Node n) {
-        /*
-        if (n.isLeaf()) {
-            if(n.getVal().toLowerCase().equals("true")){
-                cuadruplos.generarCuadruplo("GOTO", n.verdadera, "", "");
+        String t1 = "";
+        String t2 = "";
+        if (((Condition) n).getLeft().isLeaf()) {
+            if(!((Condition) n).getLeft().getVal().contains(".")){
+                t1 = ((Condition) n).getLeft().getVal();
             }else{
-                cuadruplos.generarCuadruplo("GOTO", n.falsa, "", "");
+                int place = tds.get_offset_type(((Condition) n).getLeft().getVal());
+                t1 = ((Condition) n).getLeft().getVal().split("\\.")[0]+"["+place+"]";
             }
         } else {
-        */
-            String t1 = "";
-            String t2 = "";
-            if (((Condition) n).getLeft().isLeaf()) {
-                t1 = ((Condition) n).getLeft().getVal();
-            } else {
-                t1 = insertExp(((Condition) n).getLeft());
-            }
-            if (((Condition) n).getRight().isLeaf()) {
+            t1 = insertExp(((Condition) n).getLeft());
+        }
+        if (((Condition) n).getRight().isLeaf()) {
+            if(!((Condition) n).getRight().getVal().contains(".")){
                 t2 = ((Condition) n).getRight().getVal();
-            } else {
-                t2 = insertExp(((Condition) n).getRight());
+            }else{
+                int place = tds.get_offset_type(((Condition) n).getRight().getVal());
+                t2 = ((Condition) n).getRight().getVal().split("\\.")[0]+"["+place+"]";
             }
-            String etiquv = ((Condition) n).verdadera;
-            String etiquf = ((Condition) n).falsa;
-            if (((Condition) n).getLeft().getVal().toLowerCase().equals("not")) {
-                Node te = ((Condition) n).getLeft();
+        } else {
+            t2 = insertExp(((Condition) n).getRight());
+        }
+        String etiquv = ((Condition) n).verdadera;
+        String etiquf = ((Condition) n).falsa;
+        if (((Condition) n).getLeft().getVal().toLowerCase().equals("not")) {
+            Node te = ((Condition) n).getLeft();
+            if(!((Not) te).getElement().getVal().contains(".")){
                 t1 = ((Not) te).getElement().getVal();
-                etiquv = ((Condition) n).falsa;
-                etiquf = ((Condition) n).verdadera;
-
-            } else if (((Condition) n).getRight().getVal().toLowerCase().equals("not")) {
-                Node te = ((Condition) n).getRight();
-                t2 = ((Not) te).getElement().getVal();
-                etiquv = ((Condition) n).falsa;
-                etiquf = ((Condition) n).verdadera;
+            }else{
+                int place = tds.get_offset_type(((Not) te).getElement().getVal());
+                t1 = ((Not) te).getElement().getVal().split("\\.")[0]+"["+place+"]";
             }
-            cuadruplos.generarCuadruplo("IF" + ((Condition) n).getVal(), t1, t2, "GOTO " + etiquv);
-            cuadruplos.generarCuadruplo("GOTO", etiquf, "", "");
-        //}
+            etiquv = ((Condition) n).falsa;
+            etiquf = ((Condition) n).verdadera;
+
+        } else if (((Condition) n).getRight().getVal().toLowerCase().equals("not")) {
+            Node te = ((Condition) n).getRight();
+            if(!((Not) te).getElement().getVal().contains(".")){
+                t2 = ((Not) te).getElement().getVal();
+            }else{
+                int place = tds.get_offset_type(((Not) te).getElement().getVal());
+                t2 = ((Not) te).getElement().getVal().split("\\.")[0]+"["+place+"]";
+            }
+            etiquv = ((Condition) n).falsa;
+            etiquf = ((Condition) n).verdadera;
+        }
+        cuadruplos.generarCuadruplo("IF" + ((Condition) n).getVal(), t1, t2, "GOTO " + etiquv);
+        cuadruplos.generarCuadruplo("GOTO", etiquf, "", "");
 
     }
 

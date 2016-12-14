@@ -8,13 +8,11 @@ package pc;
 import java_cup.runtime.*;
 import java_cup.runtime.Symbol;
 import pc.treeelements.*;
-import pc.treeelements.Programa;
 import java.util.ArrayList;
 import pc.Tipos.*;
 import java.util.Stack;
 import java.util.Collections;
 import pc.tabla.*;
-import pc.tabla.TablaSimbolos;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -1072,7 +1070,7 @@ class CUP$VbasicSintaxisAmbito$actions {
             {
               Programa RESULT =null;
 if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal);} sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;
-              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$0",42, RESULT);
+              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$0",42, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
 
@@ -1084,7 +1082,7 @@ if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal);} sumar_ambit
 		int bpright = ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()).right;
 		Stmt_Procedimiento bp = (Stmt_Procedimiento)((java_cup.runtime.Symbol) CUP$VbasicSintaxisAmbito$stack.peek()).value;
 remover_ambito(); offset=stack_offset.pop();
-              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$1",43, RESULT);
+              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$1",43, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
 
@@ -1110,7 +1108,7 @@ remover_ambito(); offset=stack_offset.pop();
             {
               Programa RESULT =null;
 if(!t_simbolos.existePrincipal()){t_simbolos.addTabla(t_principal); }sumar_ambito(); ambito_actual+=".0"; stack_offset.push(offset); offset=0;
-              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$2",44, RESULT);
+              CUP$VbasicSintaxisAmbito$result = parser.getSymbolFactory().newSymbol("NT$2",44, ((java_cup.runtime.Symbol)CUP$VbasicSintaxisAmbito$stack.peek()), RESULT);
             }
           return CUP$VbasicSintaxisAmbito$result;
 
@@ -1928,6 +1926,7 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
 		 if(t_simbolos.existe_id(id,"1", "Principal")){
                                     if(t_simbolos.getTabla("Principal").get_id(id).getTipo().getName().equals("Record")){
                                         RESULT = new Tipo(id);
+                                        RESULT.setTamano(t_simbolos.getTabla("Principal").get_id(id).getTipo().getTamano());
                                     }else{
                                         error_ambito_id_no_es_registro(id, idleft, idright);
                                         RESULT = new Tipo(id);

@@ -292,6 +292,7 @@ TIPOS::=tipovar:tv {: if(tv.toLowerCase().equals("string")){RESULT = new stringt
           |identificador:id  {: if(t_simbolos.existe_id(id,"1", "Principal")){
                                     if(t_simbolos.getTabla("Principal").get_id(id).getTipo().getName().equals("Record")){
                                         RESULT = new Tipo(id);
+                                        RESULT.setTamano(t_simbolos.getTabla("Principal").get_id(id).getTipo().getTamano());
                                     }else{
                                         error_ambito_id_no_es_registro(id, idleft, idright);
                                         RESULT = new Tipo(id);
@@ -626,10 +627,5 @@ CODIGO_FUNCION::=identificador:id {:  RESULT=id;
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            } :};
-
-
-
-
-
 
 

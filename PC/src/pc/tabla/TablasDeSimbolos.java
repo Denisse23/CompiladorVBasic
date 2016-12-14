@@ -118,8 +118,8 @@ public class TablasDeSimbolos {
         String am = ambito;
         while (!am.equals("")) {
             for (int j = 0; j < t.get_ids().size(); j++) {
-                if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am) &&
-                    !(t.get_ids().get(j).getTipo().getName().equals("Record"))) {
+                if (t.get_ids().get(j).getId().equals(id) && t.get_ids().get(j).getAmbito().equals(am)
+                        && !(t.get_ids().get(j).getTipo().getName().equals("Record"))) {
                     return true;
                 }
 
@@ -222,7 +222,7 @@ public class TablasDeSimbolos {
 
         return enviar;
     }
-    
+
     public String get_id_segun_ambito_hijos(String ambito) {
         TablaSimbolos t = getTabla("Principal");
         for (int j = 0; j < t.get_ids().size(); j++) {
@@ -233,6 +233,20 @@ public class TablasDeSimbolos {
         }
 
         return "";
+    }
+
+    ////////////////////////////////////////////////////////////////METODOS PARA CODIGO INTERMEDIO////////////////////////////////////////////////
+    public int get_offset_type(String identificador) {
+        String partes[] = identificador.split("\\.");
+        TablaSimbolos ty = getTabla(getTabla("Principal").get_id(partes[0]).getTipo().toString());
+        int offset=0;
+        for (int j = 1; j < partes.length-1; j++) {
+                offset+= ty.get_id(partes[j]).getOffset();
+               ty = getTabla(ty.get_id(partes[j]).getTipo().toString());
+            
+        }
+        return ty.get_id(partes[partes.length-1]).getOffset()+offset;
+
     }
 
 }

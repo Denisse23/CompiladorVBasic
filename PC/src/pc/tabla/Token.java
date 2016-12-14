@@ -31,7 +31,7 @@ public class Token {
         this.ambito = ambito;
         this.offset = offset;
         this.isParametro = false;
-        this.tipoParametro="";
+        this.tipoParametro="-";
     }
 
     public String getId() {

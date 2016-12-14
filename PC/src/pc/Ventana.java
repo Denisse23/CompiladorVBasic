@@ -285,7 +285,7 @@ public class Ventana extends javax.swing.JFrame {
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         if(errores ==0 && ArbolAbstracto!=null){
-            VentanaCuadruplos vc = new VentanaCuadruplos(ArbolAbstracto);
+            VentanaCuadruplos vc = new VentanaCuadruplos(ArbolAbstracto, tds);
             vc.setVisible(true);
         }
     }//GEN-LAST:event_jButton2ActionPerformed

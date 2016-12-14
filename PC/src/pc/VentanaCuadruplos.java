@@ -8,6 +8,7 @@ package pc;
 import javax.swing.table.DefaultTableModel;
 import pc.treeelements.Programa;
 import pc.CodigoIntermedio.*;
+import pc.tabla.TablasDeSimbolos;
 
 /**
  *
@@ -18,9 +19,9 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
     /**
      * Creates new form VentanaCuadruplos
      */
-    public VentanaCuadruplos(Programa ast) {
+    public VentanaCuadruplos(Programa ast, TablasDeSimbolos tds) {
         initComponents();
-        RecorridoArbol ra = new RecorridoArbol();
+        RecorridoArbol ra = new RecorridoArbol(tds);
         ra.PreOrden(ast);
         Cuadruplos cuadruplos = ra.getCuadruplos();
         try {
@@ -80,20 +81,20 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jButton1)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 758, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(37, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 765, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(28, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(23, 23, 23)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 289, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(jButton1)
-                .addGap(36, 36, 36))
+                .addGap(25, 25, 25))
         );
 
         pack();
