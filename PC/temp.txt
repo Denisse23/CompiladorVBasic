@@ -1,5 +1,7 @@
-dim i as boolean
+function f() as integer
+end function
+
 sub main()
-i = console.read()
-console.write(i)
+dim i as integer
+i = f()
 end sub

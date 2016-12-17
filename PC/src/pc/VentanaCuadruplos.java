@@ -32,7 +32,7 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
         try {
             DefaultTableModel model1 = (DefaultTableModel) this.jt_cuadruplos.getModel();
             for(CuadruploRow crow: cuadruplos.getRows()){
-                Object[] o = {crow.getOperador(), crow.getArgumento1(), crow.getArgumento2(), crow.getResputa()};
+                Object[] o = {crow.getOperador(), crow.getArgumento1(), crow.getArgumento2(), crow.getRespuesta()};
                 model1.addRow(o);
             }
             this.jt_cuadruplos.setModel(model1);

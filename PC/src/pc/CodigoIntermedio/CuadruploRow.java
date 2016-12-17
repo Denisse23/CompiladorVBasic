@@ -13,13 +13,13 @@ public class CuadruploRow {
     private String operador;
     private String argumento1;
     private String argumento2;
-    private String resputa;
+    private String respuesta;
     
     public CuadruploRow(String operador, String argumento1, String argumento2, String respuesta){
         this.operador = operador;
         this.argumento1 = argumento1;
         this.argumento2 = argumento2;
-        this.resputa = respuesta;
+        this.respuesta = respuesta;
         
     }
 
@@ -47,12 +47,12 @@ public class CuadruploRow {
         this.argumento2 = argumento2;
     }
 
-    public String getResputa() {
-        return resputa;
+    public String getRespuesta() {
+        return respuesta;
     }
 
-    public void setResputa(String resputa) {
-        this.resputa = resputa;
+    public void setRespuesta(String respuesta) {
+        this.respuesta = respuesta;
     }
     
     

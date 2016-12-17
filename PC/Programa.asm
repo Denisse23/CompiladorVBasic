@@ -1,5 +1,6 @@
         .data
-_i:        .byte 0
+_mesg1:        .asciiz "true"
+_mesg2:        .asciiz "false"
 _true:        .asciiz "true\n"
 _false:        .asciiz "false\n"
 bufferboolean:   .space 8
@@ -75,11 +76,50 @@ etiquefinalimprimirboolean:
 main:
         move $fp, $sp
 
-        jal readboolean
-        sb $v0, _i
+        sub $sp, $sp, 12
 
-        lb $a0, _i
-        jal imprimirboolean
+        li $t0, 10
 
+        sw $t0, -8($fp)
+
+        li $t0, 0
+
+        sb $t0, -5($fp)
+
+        li $t0, 1
+
+        sb $t0, -4($fp)
+
+        lb $t0, -4($fp)
+        li $t1, 1
+        beq $t0, $t1, _ETIQUE4
+        b _ETIQUE5
+
+_ETIQUE5:
+        lb $t0, -5($fp)
+        li $t1, 1
+        beq $t0, $t1, _ETIQUE4
+        b _ETIQUE3
+
+_ETIQUE4:
+        lw $t0, -8($fp)
+        li $t1, 10
+        bne $t0, $t1, _ETIQUE3
+        b _ETIQUE2
+
+_ETIQUE2:
+        li $v0, 4
+        la $a0, _mesg1
+        syscall
+
+        b _ETIQUE1
+
+_ETIQUE3:
+        li $v0, 4
+        la $a0, _mesg2
+        syscall
+
+
+_ETIQUE1:
         li $v0, 10
         syscall
