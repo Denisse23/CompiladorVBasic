@@ -5,9 +5,14 @@
  */
 package pc;
 
-import javax.swing.table.DefaultTableModel;
-import pc.treeelements.Programa;
-import pc.CodigoIntermedio.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import pc.CodigoIntermedio.Cuadruplos;
 import pc.codigofinal.GenerarCodigoFinal;
 import pc.tabla.TablasDeSimbolos;
 
@@ -15,29 +20,17 @@ import pc.tabla.TablasDeSimbolos;
  *
  * @author Denisse
  */
-public class VentanaCuadruplos extends javax.swing.JFrame {
+public class VentanaCodigoFinal extends javax.swing.JFrame {
 
     /**
-     * Creates new form VentanaCuadruplos
+     * Creates new form VentanaCodigoFinal
      */
-    private TablasDeSimbolos tds;
-    private Cuadruplos cuadruplos;
-    public VentanaCuadruplos(Programa ast, TablasDeSimbolos tds) {
+    public VentanaCodigoFinal(TablasDeSimbolos tds, Cuadruplos cuadruplos) {
         initComponents();
-        this.tds = tds;
-        RecorridoArbol ra = new RecorridoArbol(tds);
-        ra.PreOrden(ast);
-        Cuadruplos cuadruplos = ra.getCuadruplos();
-        this.cuadruplos = cuadruplos;
-        try {
-            DefaultTableModel model1 = (DefaultTableModel) this.jt_cuadruplos.getModel();
-            for(CuadruploRow crow: cuadruplos.getRows()){
-                Object[] o = {crow.getOperador(), crow.getArgumento1(), crow.getArgumento2(), crow.getResputa()};
-                model1.addRow(o);
-            }
-            this.jt_cuadruplos.setModel(model1);
-        } catch (Exception e) {
-            System.out.println(e);
+        GenerarCodigoFinal gcf = new GenerarCodigoFinal(tds, cuadruplos);
+        ArrayList<String> lineas = gcf.Generar();
+        for (String linea : lineas) {
+            this.textareafinal.append(linea + "\n");
         }
     }
 
@@ -51,29 +44,15 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jt_cuadruplos = new javax.swing.JTable();
+        textareafinal = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jt_cuadruplos.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Operador", "Argumento1", "Argumento2", "Respuesta"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        jScrollPane1.setViewportView(jt_cuadruplos);
+        textareafinal.setColumns(20);
+        textareafinal.setRows(5);
+        jScrollPane1.setViewportView(textareafinal);
 
         jButton1.setText("Salir");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -82,7 +61,7 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Generar Código Final");
+        jButton2.setText("Guardar");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -94,47 +73,56 @@ public class VentanaCuadruplos extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(18, 18, 18)
+                .addGap(40, 40, 40)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 853, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 759, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                .addGap(42, 42, 42)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(jButton2))
-                .addGap(25, 25, 25))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        String ruta = "./Programa.asm";
+        File archivo = new File(ruta);
+        BufferedWriter bw;
+            try {
+                bw = new BufferedWriter(new FileWriter(archivo));
+                String [] lineas = this.textareafinal.getText().split("\n");
+                for(int i=0; i<lineas.length;i++){
+                    bw.write(lineas[i]+"\n");
+                }
+                bw.close();
+            } catch (IOException ex) {
+                Logger.getLogger(VentanaCodigoFinal.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+    }//GEN-LAST:event_jButton2ActionPerformed
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         dispose();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-         VentanaCodigoFinal vcf = new VentanaCodigoFinal(tds,cuadruplos);
-            vcf.setVisible(true);
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jt_cuadruplos;
+    private javax.swing.JTextArea textareafinal;
     // End of variables declaration//GEN-END:variables
 }

@@ -248,5 +248,62 @@ public class TablasDeSimbolos {
         return ty.get_id(partes[partes.length-1]).getOffset()+offset;
 
     }
+    
+     ////////////////////////////////////////////////////////////////METODOS PARA CODIGO FINAL////////////////////////////////////////////////
+    public ArrayList<Token> get_variables_globales() {
+        ArrayList<Token> listavars = new ArrayList();
+        TablaSimbolos tp = getTabla("Principal");
+        for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getAmbito().equals("1") ){
+                    listavars.add(tp.get_ids().get(j));
+                }
+            
+        }
+        return listavars;
+
+    }
+    
+    public String get_ambit_hijos_func(String namefunc){
+      TablaSimbolos tp = getTabla("Principal");  
+      String ambitohijos = "";
+      for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getId().equals(namefunc)){
+                    ambitohijos = tp.get_ids().get(j).getHijos();
+                    break;
+                }
+            
+        }
+      
+      return ambitohijos;
+    }
+    
+    public Token get_offsert_var_locales(String namefunc, String var) {
+        Token vartoken = null;
+        TablaSimbolos tp = getTabla("Principal");
+        String ambitohijos = get_ambit_hijos_func(namefunc);
+        for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && tp.get_ids().get(j).getId().equals(var)){
+                    vartoken = tp.get_ids().get(j);
+                    break;
+                }
+        }  
+        return vartoken;
+
+    }
+    public ArrayList<Token> get_variables_locales(String namefunc) {
+        
+        ArrayList<Token> listavars = new ArrayList();
+        TablaSimbolos tp = getTabla("Principal");
+        String ambitohijos = get_ambit_hijos_func(namefunc);
+        for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos)){
+                    listavars.add(tp.get_ids().get(j));
+                }
+            
+        }
+        return listavars;
+
+    }
+    
 
 }

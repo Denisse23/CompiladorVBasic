@@ -104,7 +104,8 @@ COMENTARIO = "'"[^\n]*
                 cadena+= lista[i].substring(iniciocomilla, finalcomilla);
 
             }
-        return cadena;
+            
+        return "\""+cadena+"\"";
     }
 
 %}
