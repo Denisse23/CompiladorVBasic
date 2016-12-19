@@ -1,5 +1,6 @@
         .data
-_mesg1:        .asciiz "hola"
+_mesg1:        .asciiz "sigue siendo menor que 10\n"
+_mesg2:        .asciiz "Ya no\n"
 _true:        .asciiz "true\n"
 _false:        .asciiz "false\n"
 bufferboolean:   .space 8
@@ -72,49 +73,32 @@ etiquefinalimprimirboolean:
         jr $ra
 
 
-_e:
+_v:
         sw $fp, -4($sp)
         sw $ra, -8($sp)
         sw $s0, -12($sp)
         move $s0, $a0
         move $fp, $sp
         sub $sp, $sp, 16
-        sub $sp, $sp, 16
+        sub $sp, $sp, 0
 
 
-       move $v0, $s0
-        move $sp, $fp
-        lw $s0, -12($sp)
-        lw $ra, -8($sp)
-        lw $fp, -4($sp)
-        jr $ra
-
-_f:
-        sw $fp, -4($sp)
-        sw $ra, -8($sp)
-        move $fp, $sp
-        sub $sp, $sp, 12
-
-
-        li $a0, 0
-        jal _e
-        li $t0, 1
-        beq $v0, $t0, _ETIQUE2
+        li $t0, 10
+        blt $s0, $t0, _ETIQUE2
         b _ETIQUE3
 
 _ETIQUE2:
-        li $a0, 1
-        jal imprimirboolean
-
+        li $v0, 1
+        b _ETIQUE1
         b _ETIQUE1
 
 _ETIQUE3:
-        li $a0, 0
-        jal imprimirboolean
-
+        li $v0, 0
+        b _ETIQUE1
 
 _ETIQUE1:
         move $sp, $fp
+        lw $s0, -12($sp)
         lw $ra, -8($sp)
         lw $fp, -4($sp)
         jr $ra
@@ -122,11 +106,36 @@ _ETIQUE1:
 main:
         move $fp, $sp
 
-        sub $sp, $sp, 4
+        sub $sp, $sp, 8
 
-        jal _f
+        li $v0, 5
+        syscall
+        sw $v0, -4($fp)
+
+
+_ETIQUE5:
+        lw $a0, -4($fp)
+        jal _v
+        li $t0, 1
+        beq $v0, $t0, _ETIQUE6
+        b _ETIQUE4
+
+_ETIQUE6:
         li $v0, 4
         la $a0, _mesg1
+        syscall
+
+        lw $t1, -4($fp)
+        li $t2, 1
+        add $t0, $t1, $t2
+
+        sw $t0, -4($fp)
+
+        b _ETIQUE5
+
+_ETIQUE4:
+        li $v0, 4
+        la $a0, _mesg2
         syscall
 
         li $v0, 10

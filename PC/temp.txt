@@ -1,16 +1,20 @@
-function e(byref i as boolean) as boolean
-	return i
+function v(byref i as integer) as boolean
+  if i < 10 then
+	return true
+  else
+	return false
+ end if
 end function
 
-function f() 
-         if e(false) = true then
-             console.write(true)
-          else
-              console.write(false)
-         end if
-end function
 
 sub main()
- f()
-console.write("hola")
+dim i as integer
+i = console.read()
+	do while v(i) = true
+                                       console.write("sigue siendo menor que 10\n")
+                                       i = i + 1
+                              loop
+
+	  console.write("Ya no\n")
+                              
 end sub

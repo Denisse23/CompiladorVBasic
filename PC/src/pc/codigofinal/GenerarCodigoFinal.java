@@ -401,15 +401,16 @@ public class GenerarCodigoFinal {
 
     private void insertVaribalesLocales() {
         ArrayList<Token> varlocales = tds.get_variables_locales(funcionactual);
+        int offto = 0;
         if (varlocales.size() > 0) {
-            offsetvarlocales = offsetvarlocales + varlocales.get(varlocales.size() - 1).getOffset() + varlocales.get(varlocales.size() - 1).getTipo().getTamano();
-            while (offsetvarlocales % 4 != 0) {
-                offsetvarlocales++;
+            offto = offsetvarlocales + varlocales.get(varlocales.size() - 1).getOffset() + varlocales.get(varlocales.size() - 1).getTipo().getTamano();
+            while (offto % 4 != 0) {
+                offto++;
             }
         }
-            lineas.add("        sub $sp, $sp, " + offsetvarlocales);
+            lineas.add("        sub $sp, $sp, " + offto);
             lineas.add("");
-            spactual =offsetvarlocales;
+            spactual =offto;
         
     }
 

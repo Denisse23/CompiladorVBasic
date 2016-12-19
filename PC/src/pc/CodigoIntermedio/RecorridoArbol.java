@@ -231,8 +231,8 @@ public class RecorridoArbol {
         ((Stmt_For) n).comienzo = cuadruplos.etiquetaNueva();
         cuadruplos.generarCuadruplo("ETIQUE", ((Stmt_For) n).comienzo, "", "");
         String et = cuadruplos.etiquetaNueva();
-        cuadruplos.generarCuadruplo("if<=",  identificador, ((Stmt_For) n).getExpTo().getVal(), "GOTO " + et);
-        cuadruplos.generarCuadruplo("GOTO ", n.siguiente, "", "");
+        cuadruplos.generarCuadruplo("IF<=",  identificador, ((Stmt_For) n).getExpTo().getVal(), "GOTO " + et);
+        cuadruplos.generarCuadruplo("GOTO", n.siguiente, "", "");
         cuadruplos.generarCuadruplo("ETIQUE", et, "", "");
         ((Stmt_For) n).getBody().siguiente = cuadruplos.etiquetaNueva();
         PreOrden(((Stmt_For) n).getBody());
