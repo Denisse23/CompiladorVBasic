@@ -41,6 +41,7 @@ public class RecorridoArbol {
                 }
 
                 if (hijo instanceof Stmt_Return) {
+                    hijo.siguiente = ast.siguiente;
                     insertReturn(hijo);
                 }
 
@@ -104,7 +105,9 @@ public class RecorridoArbol {
             }
           
         }
-        cuadruplos.generarCuadruplo("RET", "", "", t);
+        cuadruplos.generarCuadruplo("RET", t, "", "");
+        if(!n.siguiente.equals(""))
+            cuadruplos.generarCuadruplo("GOTO", n.siguiente, "", "");
     }
 
     public void insertAsignacion(Node n) {
@@ -116,8 +119,8 @@ public class RecorridoArbol {
             cuadruplos.generarCuadruplo("=", t, "", ((Stmt_Asignacion) n).getIdentificador().getVal().split("\\.")[0]+"["+place+"]");
         }
     }
-
     public String insertExp(Node n) {
+        
         String t = "";
         String t1 = "";
         String t2 = "";
@@ -171,7 +174,8 @@ public class RecorridoArbol {
             cont++;
         }
         cuadruplos.generarCuadruplo("CALL", ((Stmt_Llamada_Funcion) n).getIdentificador().getVal(), cont + "", "");
-        return "RET";
+        
+    return "RET"+(cuadruplos.getRows().size()-1);
     }
 
     public String AscendenteExp(Node n, String t1, String t2) {

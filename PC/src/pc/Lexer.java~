@@ -467,7 +467,8 @@ class Lexer extends sym implements java_cup.runtime.Scanner {
                 cadena+= lista[i].substring(iniciocomilla, finalcomilla);
 
             }
-        return cadena;
+            
+        return "\""+cadena+"\"";
     }
 
 

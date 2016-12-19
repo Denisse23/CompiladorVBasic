@@ -2049,9 +2049,10 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
                                                     n = new booleant();
                                                 }
                                                 if(!t_simbolos.existe_id(id, remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,"",remover(ambito_actual),-1));
-                                                t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
-                                                t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
+                                                String am = remover(ambito_actual);
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright,"",am,-1));
+                                                t_simbolos.getTabla("Principal").get_id_A(id,am ).setIsParametro(true);
+                                                t_simbolos.getTabla("Principal").get_id_A(id,am).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }
@@ -2083,9 +2084,10 @@ index_primer_id=t_simbolos.getTabla("Principal").get_ids().size();
                                                     n = new booleant();
                                                 }
                                             if(!t_simbolos.existe_id(id,remover(ambito_actual), "Principal")){
-                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, "",remover(ambito_actual),-1));
-                                                t_simbolos.getTabla("Principal").get_id(id).setIsParametro(true);
-                                                t_simbolos.getTabla("Principal").get_id(id).setTipoParametro(tp);
+                                                String am = remover(ambito_actual);
+                                                t_simbolos.getTabla("Principal").add_id(new Token(id,n, idleft, idright, "",am,-1));
+                                                t_simbolos.getTabla("Principal").get_id_A(id,am).setIsParametro(true);
+                                                t_simbolos.getTabla("Principal").get_id_A(id,am).setTipoParametro(tp);
                                            }else{
                                                 error_ambito(id, idleft, idright);
                                            }

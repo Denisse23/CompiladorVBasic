@@ -7,8 +7,10 @@ package pc.codigofinal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Stack;
 import pc.CodigoIntermedio.CuadruploRow;
 import pc.CodigoIntermedio.Cuadruplos;
+import pc.Tipos.Funcion;
 import pc.tabla.TablasDeSimbolos;
 import pc.tabla.Token;
 
@@ -31,6 +33,11 @@ public class GenerarCodigoFinal {
     String[] reg_v;
     String funcionactual = "";
     int offsetvarlocales = 0;
+    int spactual = 0;
+    int contadorcallfunction = -1;
+    String retguardado = "";
+
+    ArrayList<Stack<String>> almacenar_registros_s = new ArrayList();
 
     public GenerarCodigoFinal(TablasDeSimbolos tds, Cuadruplos cuadruplos) {
         this.tds = tds;
@@ -46,6 +53,13 @@ public class GenerarCodigoFinal {
         initRegistros(reg_s);
         initRegistros(reg_a);
         initRegistros(reg_v);
+        initPilaRegistros();
+    }
+
+    private void initPilaRegistros() {
+        for (int i = 0; i < 8; i++) {
+            almacenar_registros_s.add(new Stack<String>());
+        }
     }
 
     private void initRegistros(String[] r) {
@@ -153,11 +167,14 @@ public class GenerarCodigoFinal {
     }
 
     private void generarFunciones() {
-        while (numlineasigfun < cuadruplos.getRows().size()) {
+        while (numlineasigfun < cuadruplos.getRows().size() - 1) {
             numlineasigfun = cuadruplos.get_num_linea_sig_func(numlineasigfun);
             String name = cuadruplos.getRows().get(numlineasigfun).getArgumento1();
             funcionactual = cuadruplos.getRows().get(numlineasigfun).getArgumento1().substring(10);
             if (cuadruplos.getRows().get(numlineasigfun).getArgumento1().toUpperCase().equals("ETIQUEFUNCMAIN")) {
+                initRegistros(temps);
+                initRegistros(reg_s);
+                initRegistros(reg_a);
                 offsetvarlocales = 4;
                 lineas.add("main:");
                 lineas.add("        move $fp, $sp");
@@ -188,7 +205,7 @@ public class GenerarCodigoFinal {
                     }
                     if (cuadruplos.getRows().get(i).getOperador().equals("ETIQUE")) {
                         lineas.add("");
-                        lineas.add("_" + cuadruplos.getRows().get(i).getArgumento1()+":");
+                        lineas.add("_" + cuadruplos.getRows().get(i).getArgumento1() + ":");
                     }
                     if (cuadruplos.getRows().get(i).getOperador().contains("IF")) {
                         String oprel = cuadruplos.getRows().get(i).getOperador().substring(2);
@@ -207,35 +224,225 @@ public class GenerarCodigoFinal {
                         }
                     }
                     if (cuadruplos.getRows().get(i).getOperador().equals("GOTO")) {
-                        lineas.add("        b _"+cuadruplos.getRows().get(i).getArgumento1());
+                        lineas.add("        b _" + cuadruplos.getRows().get(i).getArgumento1());
                     }
-                    if(cuadruplos.getRows().get(i).getOperador().equals("PARAM")){
+                    if (cuadruplos.getRows().get(i).getOperador().equals("PARAM")) {
                         insertParam(cuadruplos.getRows().get(i));
                     }
-                    if(cuadruplos.getRows().get(i).getOperador().equals("CALL")){
-                         lineas.add("        jal _"+cuadruplos.getRows().get(i).getArgumento1());
+                    if (cuadruplos.getRows().get(i).getOperador().equals("CALL")) {
+                        initRegistros(reg_a);
+
+                        if (contadorcallfunction > -1) {
+                            String t = getTempDisponible();
+                            lineas.add("        move $" + t + ", $v0");
+                            temps[Integer.parseInt(t.substring(1))] = retguardado;
+                        }
+                        guardarTemporalesvivos();
+                        lineas.add("        jal _" + cuadruplos.getRows().get(i).getArgumento1());
+                        restaurarTemporales();
+                        if (!((Funcion) tds.getTabla("Principal").get_id(cuadruplos.getRows().get(i).getArgumento1()).getTipo()).getRetorno().toString().equals("Void")) {
+                            contadorcallfunction++;
+                        }
+                        retguardado = "RET" + i;
+
                     }
 
                 }
                 lineas.add("        li $v0, 10");
                 lineas.add("        syscall");
-                numlineasigfun = cuadruplos.get_num_linea_fin_func(name) + 1;
+                numlineasigfun = cuadruplos.get_num_linea_fin_func(name);
             } else {
+                contadorcallfunction = -1;
+                lineas.add("_" + funcionactual + ":");
+                lineas.add("        sw $fp, -4($sp)");
+                lineas.add("        sw $ra, -8($sp)");
+                offsetvarlocales = 12;
+                insertParametros();
+                insertVaribalesLocales();
+                lineas.add("");
+                for (int i = numlineasigfun + 1; i < cuadruplos.get_num_linea_fin_func(name); i++) {
+                    if (cuadruplos.getRows().get(i).getOperador().equals("PRINT")) {
+                        insertPrint(cuadruplos.getRows().get(i));
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("READ")) {
+                        insertRead(cuadruplos.getRows().get(i));
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("=")) {
+                        insertAsignacion(cuadruplos.getRows().get(i));
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("+")) {
+                        insertOperacionAritmetica(cuadruplos.getRows().get(i), "add");
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("-")) {
+                        insertOperacionAritmetica(cuadruplos.getRows().get(i), "sub");
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("*")) {
+                        insertOperacionAritmetica(cuadruplos.getRows().get(i), "mul");
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("/")) {
+                        insertOperacionAritmetica(cuadruplos.getRows().get(i), "div");
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("ETIQUE")) {
+                        lineas.add("");
+                        lineas.add("_" + cuadruplos.getRows().get(i).getArgumento1() + ":");
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().contains("IF")) {
+                        String oprel = cuadruplos.getRows().get(i).getOperador().substring(2);
+                        if (oprel.equals("<")) {
+                            insertCondition(cuadruplos.getRows().get(i), "blt");
+                        } else if (oprel.equals("<=")) {
+                            insertCondition(cuadruplos.getRows().get(i), "ble");
+                        } else if (oprel.equals(">")) {
+                            insertCondition(cuadruplos.getRows().get(i), "bgt");
+                        } else if (oprel.equals(">=")) {
+                            insertCondition(cuadruplos.getRows().get(i), "bge");
+                        } else if (oprel.equals("=")) {
+                            insertCondition(cuadruplos.getRows().get(i), "beq");
+                        } else if (oprel.equals("<>")) {
+                            insertCondition(cuadruplos.getRows().get(i), "bne");
+                        }
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("GOTO")) {
+                        lineas.add("        b _" + cuadruplos.getRows().get(i).getArgumento1());
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("PARAM")) {
+                        insertParam(cuadruplos.getRows().get(i));
+                    }
+                    if (cuadruplos.getRows().get(i).getOperador().equals("CALL")) {
+                        initRegistros(reg_a);
 
+                        if (contadorcallfunction > -1) {
+                            String t = getTempDisponible();
+                            lineas.add("        move $" + t + ", $v0");
+                            temps[Integer.parseInt(t.substring(1))] = retguardado;
+                        }
+
+                        guardarTemporalesvivos();
+                        lineas.add("        jal _" + cuadruplos.getRows().get(i).getArgumento1());
+                        restaurarTemporales();
+                        if (!((Funcion) tds.getTabla("Principal").get_id(cuadruplos.getRows().get(i).getArgumento1()).getTipo()).getRetorno().equals("Void")) {
+                            contadorcallfunction++;
+                        }
+                        retguardado = "RET" + i;
+                    }
+
+                    if (cuadruplos.getRows().get(i).getOperador().equals("RET")) {
+                        insertReturn(cuadruplos.getRows().get(i));
+                    }
+
+                }
+                restablecerFrame();
+                numlineasigfun = cuadruplos.get_num_linea_fin_func(name);
             }
 
         }
     }
 
+    private void restablecerFrame() {
+        lineas.add("        move $sp, $fp");
+        ArrayList<Token> parametros = tds.get_parametros(funcionactual);
+        for (int i = parametros.size() - 1; i >= 0; i--) {
+            offsetvarlocales -= 4;
+            lineas.add("        lw $s" + i + ", -" + offsetvarlocales + "($sp)");
+            reg_s[i] = almacenar_registros_s.get(i).pop();
+
+        }
+        lineas.add("        lw $ra, -8($sp)");
+        lineas.add("        lw $fp, -4($sp)");
+        lineas.add("        jr $ra");
+        lineas.add("");
+        initRegistros(temps);
+
+    }
+
+    private void insertParametros() {
+        ArrayList<Token> parametros = tds.get_parametros(funcionactual);
+        for (int i = 0; i < parametros.size(); i++) {
+            lineas.add("        sw $s" + i + ", -" + offsetvarlocales + "($sp)");
+            lineas.add("        move $s" + i + ", $a" + i);
+            almacenar_registros_s.get(i).push(reg_s[i]);
+            reg_s[i] = parametros.get(i).getId();
+            offsetvarlocales += 4;
+        }
+        lineas.add("        move $fp, $sp");
+        if (parametros.size() > 0) {
+            lineas.add("        sub $sp, $sp, " + (offsetvarlocales));
+        }
+        spactual = offsetvarlocales;
+
+    }
+    String[] contenidotemps = new String[10];
+
+    private void restaurarTemporales() {
+        for (int i = 9; i >= 0; i--) {
+            if (!contenidotemps[i].equals("")) {
+                lineas.add("        lw $t" + i + ", -" + (spactual - 4) + "($fp)");
+                lineas.add("        add $sp, $sp, " + 4);
+                temps[i] = contenidotemps[i];
+                spactual -= 4;
+            }
+            contenidotemps[i] = "";
+        }
+    }
+
+    private void guardarTemporalesvivos() {
+        for (int i = 0; i < temps.length; i++) {
+            contenidotemps[i] = "";
+            if (!temps[i].equals("")) {
+                contenidotemps[i] = temps[i];
+                lineas.add("        sub $sp, $sp, " + 4);
+                lineas.add("        sw $t" + i + ", -" + spactual + "($fp)");
+                spactual += 4;
+            }
+
+        }
+
+    }
+
     private void insertVaribalesLocales() {
         ArrayList<Token> varlocales = tds.get_variables_locales(funcionactual);
         if (varlocales.size() > 0) {
-            int offset = offsetvarlocales + varlocales.get(varlocales.size() - 1).getOffset() + varlocales.get(varlocales.size() - 1).getTipo().getTamano();
-            while (offset % 4 != 0) {
-                offset++;
+            offsetvarlocales = offsetvarlocales + varlocales.get(varlocales.size() - 1).getOffset() + varlocales.get(varlocales.size() - 1).getTipo().getTamano();
+            while (offsetvarlocales % 4 != 0) {
+                offsetvarlocales++;
             }
-            lineas.add("        sub $sp, $sp, " + offset);
+        }
+            lineas.add("        sub $sp, $sp, " + offsetvarlocales);
             lineas.add("");
+            spactual =offsetvarlocales;
+        
+    }
+
+    private void insertReturn(CuadruploRow cr) {
+        if (cr.getArgumento1().matches("[0-9]+")) {
+            lineas.add("        li $v0, " + cr.getArgumento1());
+        } else if (cr.getArgumento1().toLowerCase().equals("true") || cr.getArgumento1().toLowerCase().equals("false")) {
+            String bool = "0";
+            if (cr.getArgumento1().toLowerCase().equals("true")) {
+                bool = "1";
+            }
+            lineas.add("        li $v0, " + bool);
+        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+            int index = isInVariablesGlobales(cr.getArgumento1());
+            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                lineas.add("       lw $v0, _" + cr.getArgumento1());
+            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                lineas.add("       lb $v0, _" + cr.getArgumento1());
+            }
+
+        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
+            Token vartoken = isInVariablesLocales(cr.getArgumento1());
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("       lw $v0, -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("       lb $v0, -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+            }
+        } else if (isInParametros(cr.getArgumento1()) != null) {
+            String s = buscarEnS(cr.getArgumento1());
+            lineas.add("       move $v0, $" + s);
+        } else {
+            String temp = buscarTemp(cr.getArgumento1());
+            lineas.add("       move $v0, $" + temp);
         }
     }
 
@@ -251,10 +458,11 @@ public class GenerarCodigoFinal {
                 lineas.add("        " + forma + " $" + temp + ", _" + variablesglobales.get(index).getId());
                 setTempDisponible(temp);
                 lineas.add("");
-            } else if (cr.getArgumento1().equals("RET")) {
+            } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+                contadorcallfunction--;
                 lineas.add("        " + forma + " $v0, _" + variablesglobales.get(index).getId());
                 lineas.add("");
-            } else if (buscarEnS(cr.getArgumento1()) != null) {
+            } else if (isInParametros(cr.getArgumento1()) != null) {
                 String s = buscarEnS(cr.getArgumento1());
                 lineas.add("        " + forma + " $" + s + ", _" + variablesglobales.get(index).getId());
                 lineas.add("");
@@ -270,14 +478,32 @@ public class GenerarCodigoFinal {
                 lineas.add("        " + forma + " $" + temp + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 setTempDisponible(temp);
                 lineas.add("");
-            } else if (cr.getArgumento1().equals("RET")) {
+            } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+                contadorcallfunction--;
                 lineas.add("        " + forma + " $v0, -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 lineas.add("");
-            } else if (buscarEnS(cr.getArgumento1()) != null) {
+            } else if (isInParametros(cr.getArgumento1()) != null) {
                 String s = buscarEnS(cr.getArgumento1());
                 lineas.add("        " + forma + " $" + s + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 lineas.add("");
             }
+        } else if (isInParametros(cr.getRespuesta()) != null) {
+            String s = buscarEnS(cr.getRespuesta());
+            if (buscarTemp(cr.getArgumento1()) != null) {
+                String temp = buscarTemp(cr.getArgumento1());
+                lineas.add("        move $" + s + ", $" + temp);
+                setTempDisponible(temp);
+                lineas.add("");
+            } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+                contadorcallfunction--;
+                lineas.add("        move $" + s + ", $v0");
+                lineas.add("");
+            } else if (isInParametros(cr.getArgumento1()) != null) {
+                String s1 = buscarEnS(cr.getArgumento1());
+                lineas.add("        move $" + s1 + ", $" + s);
+                lineas.add("");
+            }
+
         } else {
             String temp = getTempDisponible();
             if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
@@ -296,7 +522,7 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
                 temps[Integer.parseInt(temp.substring(1))] = cr.getRespuesta();
-            } else if (buscarEnS(cr.getArgumento1()) != null) {
+            } else if (isInParametros(cr.getArgumento1()) != null) {
                 String s = buscarEnS(cr.getArgumento1());
                 lineas.add("        move $" + temp + ", $" + s);
             } else if (cr.getArgumento1().matches("[0-9]+")) {
@@ -328,19 +554,32 @@ public class GenerarCodigoFinal {
             lineas.add("");
         } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
             Token vartoken = isInVariablesLocales(cr.getArgumento1());
-            if (funcionactual.toLowerCase().equals("main")) {
-                int offset = offsetvarlocales + vartoken.getOffset();
-                if (vartoken.getTipo().toString().equals("Integer")) {
-                    lineas.add("        li $v0, 1");
-                    lineas.add("        lw $a0, -" + offset + "($fp)");
-                    lineas.add("        syscall");
-                } else if (vartoken.getTipo().toString().equals("Boolean")) {
-                    lineas.add("        jal readboolean");
-                    lineas.add("        sb $v0, -" + offset + "($fp)");
-                }
+            int offset = offsetvarlocales + vartoken.getOffset();
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        li $v0, 5");
+                lineas.add("        syscall");
+                lineas.add("        sw $v0, -" + offset + "($fp)");
 
-                lineas.add("");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        jal readboolean");
+                lineas.add("        sb $v0, -" + offset + "($fp)");
             }
+
+            lineas.add("");
+        } else if (isInParametros(cr.getArgumento1()) != null) {
+            String s = buscarEnS(cr.getArgumento1());
+            Token vartoken = isInParametros(cr.getArgumento1());
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        li $v0, 5");
+                lineas.add("        syscall");
+                lineas.add("        move $" + s + ", $v0");
+
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        jal readboolean");
+                lineas.add("        move $" + s + ", $v0");
+            }
+
+            lineas.add("");
         }
 
     }
@@ -399,18 +638,26 @@ public class GenerarCodigoFinal {
             lineas.add("        syscall");
             lineas.add("");
             setTempDisponible(temp);
-        } else if (cr.getArgumento1().equals("RET")) {
+        } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+            contadorcallfunction--;
             String temp = getTempDisponible();
             lineas.add("        move $" + temp + ", $v0");
             lineas.add("        li $v0, 1");
             lineas.add("        move $a0, $" + temp);
             lineas.add("        syscall");
             lineas.add("");
-        } else if (buscarEnS(cr.getArgumento1()) != null) {
+        } else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
-            lineas.add("        li $v0, 1");
-            lineas.add("        move $a0, $" + s);
-            lineas.add("        syscall");
+            Token vartoken = isInParametros(cr.getArgumento1());
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        li $v0, 1");
+                lineas.add("        move $a0, $" + s);
+                lineas.add("        syscall");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        move $a0, $" + s);
+                lineas.add("        jal imprimirboolean");
+            }
+
             lineas.add("");
         }
     }
@@ -436,11 +683,22 @@ public class GenerarCodigoFinal {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
@@ -470,11 +728,22 @@ public class GenerarCodigoFinal {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
@@ -506,11 +775,22 @@ public class GenerarCodigoFinal {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
@@ -522,7 +802,7 @@ public class GenerarCodigoFinal {
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
-        } else if (buscarEnS(cr.getArgumento1()) != null) {
+        } else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
             boolean isreg = false;
             String temp2 = getTempDisponible();
@@ -539,11 +819,22 @@ public class GenerarCodigoFinal {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + s + ", $" + s1);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + s + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + s + ", $v0");
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
@@ -554,6 +845,56 @@ public class GenerarCodigoFinal {
                 lineas.add("        " + op + " $" + temp + ", $" + s + ", $" + temp2);
             }
             setTempDisponible(temp2);
+        } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+            String re = "v0";
+            if (buscarTemp(cr.getArgumento1()) != null) {
+                re = buscarTemp(cr.getArgumento1());
+            }
+            contadorcallfunction--;
+            boolean isreg = false;
+            String temp2 = getTempDisponible();
+            if (cr.getArgumento2().matches("[0-9]+")) {
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+
+            } else if (isInParametros(cr.getArgumento2()) != null) {
+                String s1 = buscarEnS(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + op + " $" + temp + ", $" + re + ", $" + s1);
+
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + re + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + re + ", $v0");
+                }
+            } else {
+                String tem = buscarTemp(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + op + " $" + temp + ", $" + re + ", $" + tem);
+                setTempDisponible(tem);
+            }
+            if (!isreg) {
+                lineas.add("        " + op + " $" + temp + ",$" + re + ", $" + temp2);
+            }
+            setTempDisponible(temp2);
+            if (!re.equals("v0")) {
+                setTempDisponible(re);
+            }
         } else {
             String temp1 = buscarTemp(cr.getArgumento1());
             boolean isreg = false;
@@ -571,11 +912,22 @@ public class GenerarCodigoFinal {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s1);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
+                }
             } else {
                 String tem1 = buscarTemp(cr.getArgumento2());
                 isreg = true;
@@ -595,106 +947,127 @@ public class GenerarCodigoFinal {
 
     private void insertCondition(CuadruploRow cr, String oprel) {
         String etiq = cr.getRespuesta().substring(5);
-        if(cr.getArgumento1().equals("true") || cr.getArgumento1().equals("false")){
+        if (cr.getArgumento1().equals("true") || cr.getArgumento1().equals("false")) {
             boolean isreg = false;
             String temp1 = getTempDisponible();
             String bool = "0";
-            if(cr.getArgumento1().toLowerCase().equals("true"))
+            if (cr.getArgumento1().toLowerCase().equals("true")) {
                 bool = "1";
+            }
             lineas.add("        li $" + temp1 + ", " + bool);
             temps[Integer.parseInt(temp1.substring(1))] = bool;
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
-                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
-                temps[Integer.parseInt(temp2.substring(1))] =bool1;
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
+                String bool1 = "0";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
+                temps[Integer.parseInt(temp2.substring(1))] = bool1;
                 lineas.add("        li $" + temp2 + ", " + bool1);
-            }
-            else
-            if (cr.getArgumento2().matches("[0-9]+")) {
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken.getTipo().toString().equals("Integer")){
+                if (vartoken.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                }else if(vartoken.getTipo().toString().equals("Boolean")){
+                } else if (vartoken.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
-        }else  if (cr.getArgumento1().matches("[0-9]+")) {
+        } else if (cr.getArgumento1().matches("[0-9]+")) {
             boolean isreg = false;
             String temp1 = getTempDisponible();
             lineas.add("        li $" + temp1 + ", " + cr.getArgumento1());
             temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
                 temps[Integer.parseInt(temp2.substring(1))] = bool1;
                 lineas.add("        li $" + temp2 + ", " + bool1);
-            }
-            else
-            if (cr.getArgumento2().matches("[0-9]+")) {
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken.getTipo().toString().equals("Integer")){
+                if (vartoken.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                }else if(vartoken.getTipo().toString().equals("Boolean")){
+                } else if (vartoken.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
@@ -705,47 +1078,57 @@ public class GenerarCodigoFinal {
             lineas.add("        lw $" + temp1 + ", _" + variablesglobales.get(index).getId());
             temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
                 temps[Integer.parseInt(temp2.substring(1))] = bool1;
                 lineas.add("        li $" + temp2 + ", " + bool1);
-            }
-            else
-            if (cr.getArgumento2().matches("[0-9]+")) {
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index1 = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index1).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index1).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index1).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index1).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken.getTipo().toString().equals("Integer")){
+                if (vartoken.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                }else if(vartoken.getTipo().toString().equals("Boolean")){
+                } else if (vartoken.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
-                 lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
@@ -753,193 +1136,282 @@ public class GenerarCodigoFinal {
             Token vartoken = isInVariablesLocales(cr.getArgumento1());
             boolean isreg = false;
             String temp1 = getTempDisponible();
-            if(vartoken.getTipo().toString().equals("Integer")){
+            if (vartoken.getTipo().toString().equals("Integer")) {
                 lineas.add("        lw $" + temp1 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-            }else if(vartoken.getTipo().toString().equals("Boolean")){
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
                 lineas.add("        lb $" + temp1 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
             }
             temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
                 temps[Integer.parseInt(temp2.substring(1))] = bool1;
                 lineas.add("        li $" + temp2 + ", " + bool1);
-            }
-            else if (cr.getArgumento2().matches("[0-9]+")) {
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
 
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken1.getTipo().toString().equals("Integer")){
+                if (vartoken1.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-                }else if(vartoken1.getTipo().toString().equals("Boolean")){
+                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
-        } else if (buscarEnS(cr.getArgumento1()) != null) {
+        } else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
             boolean isreg = false;
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
                 temps[Integer.parseInt(temp2.substring(1))] = bool1;
                 lineas.add("        li $" + temp2 + ", " + bool1);
-            }
-            else
-            if (cr.getArgumento2().matches("[0-9]+")) {
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken1.getTipo().toString().equals("Integer")){
+                if (vartoken1.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-                }else if(vartoken1.getTipo().toString().equals("Boolean")){
+                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $s, $" + s1+", _"+etiq);
+                lineas.add("        " + oprel + " $" + s + ", $" + s1 + ", _" + etiq);
 
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + s + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + s + ", $v0, _" + etiq);
+                }
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $s, $" + tem+", _"+etiq);
+                lineas.add("        " + oprel + " $" + s + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
-                lineas.add("        " + oprel + " $s, $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + s + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp2);
+        } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+            String re = "v0";
+            if (buscarTemp(cr.getArgumento1()) != null) {
+                re = buscarTemp(cr.getArgumento1());
+            }
+            contadorcallfunction--;
+            boolean isreg = false;
+            String temp2 = getTempDisponible();
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
+                String bool1 = "0";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
+                temps[Integer.parseInt(temp2.substring(1))] = bool1;
+                lineas.add("        li $" + temp2 + ", " + bool1);
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (vartoken1.getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+                }
+
+            } else if (isInParametros(cr.getArgumento2()) != null) {
+                String s1 = buscarEnS(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + oprel + " $" + re + ", $" + s1 + ", _" + etiq);
+
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + re + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + re + ", $v0, _" + etiq);
+                }
+            } else {
+                String tem = buscarTemp(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + oprel + " $" + re+ ", $" + tem + ", _" + etiq);
+                setTempDisponible(tem);
+            }
+            if (!isreg) {
+                lineas.add("        " + oprel + " $" + re + ", $" + temp2 + ", _" + etiq);
+            }
+            setTempDisponible(temp2);
+            if (buscarTemp(cr.getArgumento1()) != null) {
+                setTempDisponible(re);
+            }
         } else {
             String temp1 = buscarTemp(cr.getArgumento1());
             boolean isreg = false;
             String temp2 = getTempDisponible();
-            if(cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")){
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
                 String bool1 = "0";
-                if(cr.getArgumento2().toLowerCase().equals("true"))
-                bool1 = "1";
-                
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
+
                 temps[Integer.parseInt(temp2.substring(1))] = bool1;
-                lineas.add("        li $" + temp2 + ", " +bool1);
-            }
-            else
-            if (cr.getArgumento2().matches("[0-9]+")) {
+                lineas.add("        li $" + temp2 + ", " + bool1);
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
 
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if(vartoken1.getTipo().toString().equals("Integer")){
+                if (vartoken1.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-                }else if(vartoken1.getTipo().toString().equals("Boolean")){
+                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
             } else if (buscarEnS(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s1+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s1 + ", _" + etiq);
 
             } else {
                 String tem1 = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem1+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem1 + ", _" + etiq);
                 setTempDisponible(tem1);
             }
             if (!isreg) {
-                 lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2+", _"+etiq);
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
             }
             setTempDisponible(temp1);
             setTempDisponible(temp2);
         }
 
     }
-    
-    private void insertParam(CuadruploRow cr){
+
+    private void insertParam(CuadruploRow cr) {
         String a = getADisponible();
-        if(cr.getArgumento1().matches("[0-9]+")){
-            lineas.add("li $"+a+", "+cr.getArgumento1());
+        if (cr.getArgumento1().matches("[0-9]+")) {
+            lineas.add("        li $" + a + ", " + cr.getArgumento1());
             reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
-        }else if(cr.getArgumento1().equals("true") || cr.getArgumento1().equals("false")){
+        } else if (cr.getArgumento1().equals("true") || cr.getArgumento1().equals("false")) {
             String bool = "0";
-            if(cr.getArgumento1().equals("true"))
+            if (cr.getArgumento1().equals("true")) {
                 bool = "1";
-            lineas.add("li $"+a+", "+bool);
+            }
+            lineas.add("        li $" + a + ", " + bool);
             reg_a[Integer.parseInt(a.substring(1))] = bool;
-        }else if(isInVariablesGlobales(cr.getArgumento1())!=-1){
+        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
             int index = isInVariablesGlobales(cr.getArgumento1());
-            if(variablesglobales.get(index).getTipo().toString().equals("Integer")){
-                lineas.add("lw $"+a+", _"+cr.getArgumento1());
-            }else if(variablesglobales.get(index).getTipo().toString().equals("Boolean")){
-                lineas.add("lb $"+a+", _"+cr.getArgumento1());
+            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                lineas.add("        lw $" + a + ", _" + cr.getArgumento1());
+            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                lineas.add("        lb $" + a + ", _" + cr.getArgumento1());
             }
             reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
-        }else if(isInVariablesLocales(cr.getArgumento1())!=null){
+        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
             Token vartoken = isInVariablesLocales(cr.getArgumento1());
-            if(vartoken.getTipo().toString().equals("Integer")){
-                lineas.add("lw $"+a+", -"+(offsetvarlocales+vartoken.getOffset())+"($fp)");
-            }else if(vartoken.getTipo().toString().equals("Boolean")){
-                lineas.add("lb $"+a+", -"+(offsetvarlocales+vartoken.getOffset())+"($fp)");
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        lw $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        lb $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
             }
             reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
-        }else if(buscarEnS(cr.getArgumento1())!=null){
+        } else if (buscarEnS(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
-            lineas.add("move $"+a+", "+s);
-        }else{
+            lineas.add("        move $" + a + ", $" + s);
+        } else {
             String temp = buscarTemp(cr.getArgumento1());
-            lineas.add("move $"+a+", "+temp);
+            lineas.add("        move $" + a + ", $" + temp);
             setTempDisponible(temp);
         }
+    }
+
+    private Token isInParametros(String var) {
+        return tds.get_offsert_var_parametros(funcionactual, var);
     }
 
     private Token isInVariablesLocales(String var) {
@@ -1012,7 +1484,7 @@ public class GenerarCodigoFinal {
         }
         return dis;
     }
-    
+
     private String getADisponible() {
         String dis = null;
         int index = -1;
@@ -1027,7 +1499,7 @@ public class GenerarCodigoFinal {
         }
         return dis;
     }
-    
+
     private void setADisponible(String a) {
         reg_a[Integer.parseInt(a.substring(1))] = "";
     }

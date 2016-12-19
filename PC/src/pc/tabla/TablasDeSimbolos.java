@@ -71,7 +71,8 @@ public class TablasDeSimbolos {
         TablaSimbolos t = getTabla("Principal");
 
         for (int j = 0; j < t.get_ids().size(); j++) {
-            if (t.get_ids().get(j).getId().toLowerCase().equals("main") && t.get_ids().get(j).getTipo().getName().equals("Proc")) {
+            if (t.get_ids().get(j).getId().toLowerCase().equals("main") && t.get_ids().get(j).getTipo().getName().equals("Proc") &&
+                t.get_ids().get(j).getTipo().toString().equals("Void->Void")) {
                 return true;
             }
 
@@ -282,7 +283,7 @@ public class TablasDeSimbolos {
         TablaSimbolos tp = getTabla("Principal");
         String ambitohijos = get_ambit_hijos_func(namefunc);
         for (int j = 0; j < tp.get_ids().size(); j++) {
-                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && tp.get_ids().get(j).getId().equals(var)){
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && tp.get_ids().get(j).getId().equals(var) && !tp.get_ids().get(j).isIsParametro()){
                     vartoken = tp.get_ids().get(j);
                     break;
                 }
@@ -296,12 +297,41 @@ public class TablasDeSimbolos {
         TablaSimbolos tp = getTabla("Principal");
         String ambitohijos = get_ambit_hijos_func(namefunc);
         for (int j = 0; j < tp.get_ids().size(); j++) {
-                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos)){
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && !tp.get_ids().get(j).isIsParametro()){
                     listavars.add(tp.get_ids().get(j));
                 }
             
         }
         return listavars;
+
+    }
+    
+    public ArrayList<Token> get_parametros(String namefunc) {
+        
+        ArrayList<Token> listavars = new ArrayList();
+        TablaSimbolos tp = getTabla("Principal");
+        String ambitohijos = get_ambit_hijos_func(namefunc);
+        for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && tp.get_ids().get(j).isIsParametro()){
+                    listavars.add(tp.get_ids().get(j));
+                }
+            
+        }
+        return listavars;
+
+    }
+    
+    public Token get_offsert_var_parametros(String namefunc, String var) {
+        Token vartoken = null;
+        TablaSimbolos tp = getTabla("Principal");
+        String ambitohijos = get_ambit_hijos_func(namefunc);
+        for (int j = 0; j < tp.get_ids().size(); j++) {
+                if(tp.get_ids().get(j).getAmbito().equals(ambitohijos) && tp.get_ids().get(j).getId().equals(var) && tp.get_ids().get(j).isIsParametro()){
+                    vartoken = tp.get_ids().get(j);
+                    break;
+                }
+        }  
+        return vartoken;
 
     }
     

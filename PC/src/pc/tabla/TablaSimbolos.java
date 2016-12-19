@@ -36,5 +36,13 @@ public class TablaSimbolos {
         }
         return null;
     }
+     public Token get_id_A(String id, String ambito){
+        for(int i=0;i<tokens.size();i++){
+            if(tokens.get(i).getId().equals(id) && tokens.get(i).getAmbito().equals(ambito)){
+                return tokens.get(i);
+            }
+        }
+        return null;
+    }
     
 }

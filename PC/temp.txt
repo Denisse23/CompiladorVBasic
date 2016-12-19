@@ -1,7 +1,16 @@
-function f() as integer
+function e(byref i as boolean) as boolean
+	return i
+end function
+
+function f() 
+         if e(false) = true then
+             console.write(true)
+          else
+              console.write(false)
+         end if
 end function
 
 sub main()
-dim i as integer
-i = f()
+ f()
+console.write("hola")
 end sub
