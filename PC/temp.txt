@@ -1,20 +1,15 @@
-function v(byref i as integer) as boolean
-  if i < 10 then
-	return true
-  else
-	return false
- end if
+function f(byref n as integer) as integer
+	if n = 0 then
+		return 1
+	else
+   		return n * (f(n-1))
+	end if
 end function
 
-
 sub main()
-dim i as integer
-i = console.read()
-	do while v(i) = true
-                                       console.write("sigue siendo menor que 10\n")
-                                       i = i + 1
-                              loop
-
-	  console.write("Ya no\n")
-                              
+	console.write("Introduzca un numero")
+	dim i as integer
+	i = console.read()	
+                             console.write("El Factorial es:\n")
+ 	console.write(f(i))
 end sub

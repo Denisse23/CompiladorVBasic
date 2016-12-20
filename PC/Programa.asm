@@ -1,6 +1,6 @@
         .data
-_mesg1:        .asciiz "sigue siendo menor que 10\n"
-_mesg2:        .asciiz "Ya no\n"
+_mesg1:        .asciiz "Introduzca un numero"
+_mesg2:        .asciiz "El Factorial es:\n"
 _true:        .asciiz "true\n"
 _false:        .asciiz "false\n"
 bufferboolean:   .space 8
@@ -73,7 +73,7 @@ etiquefinalimprimirboolean:
         jr $ra
 
 
-_v:
+_f:
         sw $fp, -4($sp)
         sw $ra, -8($sp)
         sw $s0, -12($sp)
@@ -83,8 +83,8 @@ _v:
         sub $sp, $sp, 0
 
 
-        li $t0, 10
-        blt $s0, $t0, _ETIQUE2
+        li $t0, 0
+        beq $s0, $t0, _ETIQUE2
         b _ETIQUE3
 
 _ETIQUE2:
@@ -93,7 +93,14 @@ _ETIQUE2:
         b _ETIQUE1
 
 _ETIQUE3:
-        li $v0, 0
+        li $t1, 1
+        sub $t0, $s0, $t1
+
+        move $a0, $t0
+        jal _f
+        mul $t0, $s0, $v0
+
+       move $v0, $t0
         b _ETIQUE1
 
 _ETIQUE1:
@@ -108,34 +115,23 @@ main:
 
         sub $sp, $sp, 8
 
-        li $v0, 5
-        syscall
-        sw $v0, -4($fp)
-
-
-_ETIQUE5:
-        lw $a0, -4($fp)
-        jal _v
-        li $t0, 1
-        beq $v0, $t0, _ETIQUE6
-        b _ETIQUE4
-
-_ETIQUE6:
         li $v0, 4
         la $a0, _mesg1
         syscall
 
-        lw $t1, -4($fp)
-        li $t2, 1
-        add $t0, $t1, $t2
+        li $v0, 5
+        syscall
+        sw $v0, -4($fp)
 
-        sw $t0, -4($fp)
-
-        b _ETIQUE5
-
-_ETIQUE4:
         li $v0, 4
         la $a0, _mesg2
+        syscall
+
+        lw $a0, -4($fp)
+        jal _f
+        move $t0, $v0
+        li $v0, 1
+        move $a0, $t0
         syscall
 
         li $v0, 10

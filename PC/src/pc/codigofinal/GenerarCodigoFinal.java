@@ -408,10 +408,10 @@ public class GenerarCodigoFinal {
                 offto++;
             }
         }
-            lineas.add("        sub $sp, $sp, " + offto);
-            lineas.add("");
-            spactual =offto;
-        
+        lineas.add("        sub $sp, $sp, " + offto);
+        lineas.add("");
+        spactual = offto;
+
     }
 
     private void insertReturn(CuadruploRow cr) {
@@ -423,14 +423,6 @@ public class GenerarCodigoFinal {
                 bool = "1";
             }
             lineas.add("        li $v0, " + bool);
-        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
-            int index = isInVariablesGlobales(cr.getArgumento1());
-            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                lineas.add("       lw $v0, _" + cr.getArgumento1());
-            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                lineas.add("       lb $v0, _" + cr.getArgumento1());
-            }
-
         } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
             Token vartoken = isInVariablesLocales(cr.getArgumento1());
             if (vartoken.getTipo().toString().equals("Integer")) {
@@ -438,7 +430,15 @@ public class GenerarCodigoFinal {
             } else if (vartoken.getTipo().toString().equals("Boolean")) {
                 lineas.add("       lb $v0, -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
             }
-        } else if (isInParametros(cr.getArgumento1()) != null) {
+        }else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+            int index = isInVariablesGlobales(cr.getArgumento1());
+            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                lineas.add("       lw $v0, _" + cr.getArgumento1());
+            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                lineas.add("       lb $v0, _" + cr.getArgumento1());
+            }
+
+        }  else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
             lineas.add("       move $v0, $" + s);
         } else {
@@ -448,27 +448,7 @@ public class GenerarCodigoFinal {
     }
 
     private void insertAsignacion(CuadruploRow cr) {
-        if (isInVariablesGlobales(cr.getRespuesta()) != -1) {
-            int index = isInVariablesGlobales(cr.getRespuesta());
-            String forma = "sw";
-            if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                forma = "sb";
-            }
-            if (buscarTemp(cr.getArgumento1()) != null) {
-                String temp = buscarTemp(cr.getArgumento1());
-                lineas.add("        " + forma + " $" + temp + ", _" + variablesglobales.get(index).getId());
-                setTempDisponible(temp);
-                lineas.add("");
-            } else if (cr.getArgumento1().matches("RET[0-9]+")) {
-                contadorcallfunction--;
-                lineas.add("        " + forma + " $v0, _" + variablesglobales.get(index).getId());
-                lineas.add("");
-            } else if (isInParametros(cr.getArgumento1()) != null) {
-                String s = buscarEnS(cr.getArgumento1());
-                lineas.add("        " + forma + " $" + s + ", _" + variablesglobales.get(index).getId());
-                lineas.add("");
-            }
-        } else if (isInVariablesLocales(cr.getRespuesta()) != null) {
+        if (isInVariablesLocales(cr.getRespuesta()) != null) {
             Token vartoken = isInVariablesLocales(cr.getRespuesta());
             String forma = "sw";
             if (vartoken.getTipo().toString().equals("Boolean")) {
@@ -486,6 +466,27 @@ public class GenerarCodigoFinal {
             } else if (isInParametros(cr.getArgumento1()) != null) {
                 String s = buscarEnS(cr.getArgumento1());
                 lineas.add("        " + forma + " $" + s + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+                lineas.add("");
+            }
+        } 
+                else if (isInVariablesGlobales(cr.getRespuesta()) != -1) {
+            int index = isInVariablesGlobales(cr.getRespuesta());
+            String forma = "sw";
+            if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                forma = "sb";
+            }
+            if (buscarTemp(cr.getArgumento1()) != null) {
+                String temp = buscarTemp(cr.getArgumento1());
+                lineas.add("        " + forma + " $" + temp + ", _" + variablesglobales.get(index).getId());
+                setTempDisponible(temp);
+                lineas.add("");
+            } else if (cr.getArgumento1().matches("RET[0-9]+")) {
+                contadorcallfunction--;
+                lineas.add("        " + forma + " $v0, _" + variablesglobales.get(index).getId());
+                lineas.add("");
+            } else if (isInParametros(cr.getArgumento1()) != null) {
+                String s = buscarEnS(cr.getArgumento1());
+                lineas.add("        " + forma + " $" + s + ", _" + variablesglobales.get(index).getId());
                 lineas.add("");
             }
         } else if (isInParametros(cr.getRespuesta()) != null) {
@@ -507,15 +508,7 @@ public class GenerarCodigoFinal {
 
         } else {
             String temp = getTempDisponible();
-            if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento1());
-                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp + ", _" + variablesglobales.get(index).getId());
-                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp + ", _" + variablesglobales.get(index).getId());
-                }
-                temps[Integer.parseInt(temp.substring(1))] = cr.getRespuesta();
-            } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
+             if (isInVariablesLocales(cr.getArgumento1()) != null) {
                 Token vartoken = isInVariablesLocales(cr.getArgumento1());
                 if (vartoken.getTipo().toString().equals("Integer")) {
                     lineas.add("        lw $" + temp + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
@@ -523,7 +516,16 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
                 temps[Integer.parseInt(temp.substring(1))] = cr.getRespuesta();
-            } else if (isInParametros(cr.getArgumento1()) != null) {
+            }
+                    else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento1());
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp + ", _" + variablesglobales.get(index).getId());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp + ", _" + variablesglobales.get(index).getId());
+                }
+                temps[Integer.parseInt(temp.substring(1))] = cr.getRespuesta();
+            }  else if (isInParametros(cr.getArgumento1()) != null) {
                 String s = buscarEnS(cr.getArgumento1());
                 lineas.add("        move $" + temp + ", $" + s);
             } else if (cr.getArgumento1().matches("[0-9]+")) {
@@ -542,18 +544,7 @@ public class GenerarCodigoFinal {
     }
 
     private void insertRead(CuadruploRow cr) {
-        if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
-            int index = isInVariablesGlobales(cr.getArgumento1());
-            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                lineas.add("        li $v0, 5");
-                lineas.add("        syscall");
-                lineas.add("        sw $v0, " + "_" + variablesglobales.get(index).getId());
-            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                lineas.add("        jal readboolean");
-                lineas.add("        sb $v0, _" + variablesglobales.get(index).getId());
-            }
-            lineas.add("");
-        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
+        if (isInVariablesLocales(cr.getArgumento1()) != null) {
             Token vartoken = isInVariablesLocales(cr.getArgumento1());
             int offset = offsetvarlocales + vartoken.getOffset();
             if (vartoken.getTipo().toString().equals("Integer")) {
@@ -566,6 +557,18 @@ public class GenerarCodigoFinal {
                 lineas.add("        sb $v0, -" + offset + "($fp)");
             }
 
+            lineas.add("");
+        } 
+                else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+            int index = isInVariablesGlobales(cr.getArgumento1());
+            if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                lineas.add("        li $v0, 5");
+                lineas.add("        syscall");
+                lineas.add("        sw $v0, " + "_" + variablesglobales.get(index).getId());
+            } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                lineas.add("        jal readboolean");
+                lineas.add("        sb $v0, _" + variablesglobales.get(index).getId());
+            }
             lineas.add("");
         } else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
@@ -605,7 +608,20 @@ public class GenerarCodigoFinal {
             lineas.add("        li $a0, " + bool);
             lineas.add("        jal imprimirboolean");
             lineas.add("");
-        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
+            Token vartoken = isInVariablesLocales(cr.getArgumento1());
+            int offset = offsetvarlocales + vartoken.getOffset();
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        li $v0, 1");
+                lineas.add("        lw $a0, -" + offset + "($fp)");
+                lineas.add("        syscall");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        lb $a0, -" + offset + "($fp)");
+                lineas.add("        jal imprimirboolean");
+            }
+
+            lineas.add("");
+        }else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
             int index = isInVariablesGlobales(cr.getArgumento1());
             if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
                 lineas.add("        li $v0, 1");
@@ -617,22 +633,7 @@ public class GenerarCodigoFinal {
 
             }
             lineas.add("");
-        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
-            Token vartoken = isInVariablesLocales(cr.getArgumento1());
-            if (funcionactual.toLowerCase().equals("main")) {
-                int offset = offsetvarlocales + vartoken.getOffset();
-                if (vartoken.getTipo().toString().equals("Integer")) {
-                    lineas.add("        li $v0, 1");
-                    lineas.add("        lw $a0, -" + offset + "($fp)");
-                    lineas.add("        syscall");
-                } else if (vartoken.getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $a0, -" + offset + "($fp)");
-                    lineas.add("        jal imprimirboolean");
-                }
-
-                lineas.add("");
-            }
-        } else if (buscarTemp(cr.getArgumento1()) != null) {
+        }  else if (buscarTemp(cr.getArgumento1()) != null) {
             String temp = buscarTemp(cr.getArgumento1());
             lineas.add("        li $v0, 1");
             lineas.add("        move $a0, $" + temp);
@@ -675,60 +676,15 @@ public class GenerarCodigoFinal {
             if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-
-            } else if (isInParametros(cr.getArgumento2()) != null) {
-                String s = buscarEnS(cr.getArgumento2());
-                isreg = true;
-                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s);
-
-            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
-                isreg = true;
-                if (buscarTemp(cr.getArgumento2()) != null) {
-                    String t = buscarTemp(cr.getArgumento2());
-                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
-                    setTempDisponible(t);
-                    contadorcallfunction--;
-                } else {
-                    contadorcallfunction--;
-                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
-                }
-            } else {
-                String tem = buscarTemp(cr.getArgumento2());
-                isreg = true;
-                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + tem);
-                setTempDisponible(tem);
-            }
-            if (!isreg) {
-                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + temp2);
-            }
-            setTempDisponible(temp1);
-            setTempDisponible(temp2);
-        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
-            boolean isreg = false;
-            int index = isInVariablesGlobales(cr.getArgumento1());
-            String temp1 = getTempDisponible();
-            lineas.add("        lw $" + temp1 + ", _" + variablesglobales.get(index).getId());
-            temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
-            String temp2 = getTempDisponible();
-            if (cr.getArgumento2().matches("[0-9]+")) {
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
@@ -766,16 +722,61 @@ public class GenerarCodigoFinal {
             if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
 
+            }else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+
+            }  else if (isInParametros(cr.getArgumento2()) != null) {
+                String s = buscarEnS(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + s);
+
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + t);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $v0");
+                }
+            } else {
+                String tem = buscarTemp(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + tem);
+                setTempDisponible(tem);
+            }
+            if (!isreg) {
+                lineas.add("        " + op + " $" + temp + ", $" + temp1 + ", $" + temp2);
+            }
+            setTempDisponible(temp1);
+            setTempDisponible(temp2);
+        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+            boolean isreg = false;
+            int index = isInVariablesGlobales(cr.getArgumento1());
+            String temp1 = getTempDisponible();
+            lineas.add("        lw $" + temp1 + ", _" + variablesglobales.get(index).getId());
+            temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
+            String temp2 = getTempDisponible();
+            if (cr.getArgumento2().matches("[0-9]+")) {
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
@@ -810,17 +811,17 @@ public class GenerarCodigoFinal {
             if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            }else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
 
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-
-            } else if (isInParametros(cr.getArgumento2()) != null) {
+            }  else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + op + " $" + temp + ", $" + s + ", $" + s1);
@@ -857,15 +858,15 @@ public class GenerarCodigoFinal {
             if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
 
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
@@ -903,15 +904,15 @@ public class GenerarCodigoFinal {
             if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
 
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
@@ -968,15 +969,7 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
-                }
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+            }else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 if (vartoken.getTipo().toString().equals("Integer")) {
@@ -985,7 +978,15 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
                 }
 
-            } else if (isInParametros(cr.getArgumento2()) != null) {
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
+            }  else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
@@ -1028,7 +1029,16 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (vartoken.getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+                } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+                }
+
+            }else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
@@ -1036,77 +1046,7 @@ public class GenerarCodigoFinal {
                 } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (vartoken.getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                } else if (vartoken.getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                }
-
-            } else if (isInParametros(cr.getArgumento2()) != null) {
-                String s = buscarEnS(cr.getArgumento2());
-                isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
-
-            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
-                isreg = true;
-                if (buscarTemp(cr.getArgumento2()) != null) {
-                    String t = buscarTemp(cr.getArgumento2());
-                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
-                    setTempDisponible(t);
-                    contadorcallfunction--;
-                } else {
-                    contadorcallfunction--;
-                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
-                }
-            } else {
-                String tem = buscarTemp(cr.getArgumento2());
-                isreg = true;
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
-                setTempDisponible(tem);
-            }
-            if (!isreg) {
-                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
-            }
-            setTempDisponible(temp1);
-            setTempDisponible(temp2);
-        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
-            boolean isreg = false;
-            int index = isInVariablesGlobales(cr.getArgumento1());
-            String temp1 = getTempDisponible();
-            lineas.add("        lw $" + temp1 + ", _" + variablesglobales.get(index).getId());
-            temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
-            String temp2 = getTempDisponible();
-            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
-                String bool1 = "0";
-                if (cr.getArgumento2().toLowerCase().equals("true")) {
-                    bool1 = "1";
-                }
-                temps[Integer.parseInt(temp2.substring(1))] = bool1;
-                lineas.add("        li $" + temp2 + ", " + bool1);
-            } else if (cr.getArgumento2().matches("[0-9]+")) {
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index1 = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (variablesglobales.get(index1).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                } else if (variablesglobales.get(index1).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
-                }
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (vartoken.getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                } else if (vartoken.getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-                }
-
-            } else if (isInParametros(cr.getArgumento2()) != null) {
+            }  else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
@@ -1154,16 +1094,7 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
-                }
-
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+            }else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 if (vartoken1.getTipo().toString().equals("Integer")) {
@@ -1172,7 +1103,77 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
+            }  else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
+
             } else if (isInParametros(cr.getArgumento2()) != null) {
+                String s = buscarEnS(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
+
+            } else if (cr.getArgumento2().matches("RET[0-9]+")) {
+                isreg = true;
+                if (buscarTemp(cr.getArgumento2()) != null) {
+                    String t = buscarTemp(cr.getArgumento2());
+                    lineas.add("        " + oprel + " $" + temp1 + ", $" + t + ", _" + etiq);
+                    setTempDisponible(t);
+                    contadorcallfunction--;
+                } else {
+                    contadorcallfunction--;
+                    lineas.add("        " + oprel + " $" + temp1 + ", $v0, _" + etiq);
+                }
+            } else {
+                String tem = buscarTemp(cr.getArgumento2());
+                isreg = true;
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + tem + ", _" + etiq);
+                setTempDisponible(tem);
+            }
+            if (!isreg) {
+                lineas.add("        " + oprel + " $" + temp1 + ", $" + temp2 + ", _" + etiq);
+            }
+            setTempDisponible(temp1);
+            setTempDisponible(temp2);
+        } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
+            boolean isreg = false;
+            int index = isInVariablesGlobales(cr.getArgumento1());
+            String temp1 = getTempDisponible();
+            lineas.add("        lw $" + temp1 + ", _" + variablesglobales.get(index).getId());
+            temps[Integer.parseInt(temp1.substring(1))] = cr.getArgumento1();
+            String temp2 = getTempDisponible();
+            if (cr.getArgumento2().equals("true") || cr.getArgumento2().equals("false")) {
+                String bool1 = "0";
+                if (cr.getArgumento2().toLowerCase().equals("true")) {
+                    bool1 = "1";
+                }
+                temps[Integer.parseInt(temp2.substring(1))] = bool1;
+                lineas.add("        li $" + temp2 + ", " + bool1);
+            } else if (cr.getArgumento2().matches("[0-9]+")) {
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (vartoken.getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+                } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+                }
+
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index1 = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index1).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index1).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
+            }  else if (isInParametros(cr.getArgumento2()) != null) {
                 String s = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + oprel + " $" + temp1 + ", $" + s + ", _" + etiq);
@@ -1213,14 +1214,6 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
-                }
             } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
@@ -1230,6 +1223,14 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
+            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
@@ -1274,15 +1275,7 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
-            } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
-                int index = isInVariablesGlobales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
-                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
-                }
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+            }else if (isInVariablesLocales(cr.getArgumento2()) != null) {
                 Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 if (vartoken1.getTipo().toString().equals("Integer")) {
@@ -1291,6 +1284,14 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
                 }
 
+            }  else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
+                int index = isInVariablesGlobales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", _" + cr.getArgumento2());
+                } else if (variablesglobales.get(index).getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
+                }
             } else if (isInParametros(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
@@ -1310,7 +1311,7 @@ public class GenerarCodigoFinal {
             } else {
                 String tem = buscarTemp(cr.getArgumento2());
                 isreg = true;
-                lineas.add("        " + oprel + " $" + re+ ", $" + tem + ", _" + etiq);
+                lineas.add("        " + oprel + " $" + re + ", $" + tem + ", _" + etiq);
                 setTempDisponible(tem);
             }
             if (!isreg) {
@@ -1335,6 +1336,15 @@ public class GenerarCodigoFinal {
             } else if (cr.getArgumento2().matches("[0-9]+")) {
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
                 lineas.add("        li $" + temp2 + ", " + cr.getArgumento2());
+            }else if (isInVariablesLocales(cr.getArgumento2()) != null) {
+                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
+                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
+                if (vartoken1.getTipo().toString().equals("Integer")) {
+                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
+                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
+                }
+
             } else if (isInVariablesGlobales(cr.getArgumento2()) != -1) {
                 int index = isInVariablesGlobales(cr.getArgumento2());
                 temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
@@ -1344,16 +1354,7 @@ public class GenerarCodigoFinal {
                     lineas.add("        lb $" + temp2 + ", _" + cr.getArgumento2());
                 }
 
-            } else if (isInVariablesLocales(cr.getArgumento2()) != null) {
-                Token vartoken1 = isInVariablesLocales(cr.getArgumento2());
-                temps[Integer.parseInt(temp2.substring(1))] = cr.getArgumento2();
-                if (vartoken1.getTipo().toString().equals("Integer")) {
-                    lineas.add("        lw $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-                } else if (vartoken1.getTipo().toString().equals("Boolean")) {
-                    lineas.add("        lb $" + temp2 + ", -" + (offsetvarlocales + vartoken1.getOffset()) + "($fp)");
-                }
-
-            } else if (buscarEnS(cr.getArgumento2()) != null) {
+            }  else if (buscarEnS(cr.getArgumento2()) != null) {
                 String s1 = buscarEnS(cr.getArgumento2());
                 isreg = true;
                 lineas.add("        " + oprel + " $" + temp1 + ", $" + s1 + ", _" + etiq);
@@ -1385,6 +1386,14 @@ public class GenerarCodigoFinal {
             }
             lineas.add("        li $" + a + ", " + bool);
             reg_a[Integer.parseInt(a.substring(1))] = bool;
+        }else if (isInVariablesLocales(cr.getArgumento1()) != null) {
+            Token vartoken = isInVariablesLocales(cr.getArgumento1());
+            if (vartoken.getTipo().toString().equals("Integer")) {
+                lineas.add("        lw $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+            } else if (vartoken.getTipo().toString().equals("Boolean")) {
+                lineas.add("        lb $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
+            }
+            reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
         } else if (isInVariablesGlobales(cr.getArgumento1()) != -1) {
             int index = isInVariablesGlobales(cr.getArgumento1());
             if (variablesglobales.get(index).getTipo().toString().equals("Integer")) {
@@ -1393,15 +1402,7 @@ public class GenerarCodigoFinal {
                 lineas.add("        lb $" + a + ", _" + cr.getArgumento1());
             }
             reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
-        } else if (isInVariablesLocales(cr.getArgumento1()) != null) {
-            Token vartoken = isInVariablesLocales(cr.getArgumento1());
-            if (vartoken.getTipo().toString().equals("Integer")) {
-                lineas.add("        lw $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-            } else if (vartoken.getTipo().toString().equals("Boolean")) {
-                lineas.add("        lb $" + a + ", -" + (offsetvarlocales + vartoken.getOffset()) + "($fp)");
-            }
-            reg_a[Integer.parseInt(a.substring(1))] = cr.getArgumento1();
-        } else if (buscarEnS(cr.getArgumento1()) != null) {
+        }  else if (isInParametros(cr.getArgumento1()) != null) {
             String s = buscarEnS(cr.getArgumento1());
             lineas.add("        move $" + a + ", $" + s);
         } else {
